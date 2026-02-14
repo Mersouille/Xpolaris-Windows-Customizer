@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+    <!-- 
+        Fichier Autounattend.xml pour Windows 11 Pro
+        Installation automatisée et personnalisée
+        
+        INSTRUCTIONS:
+        1. Copiez ce fichier à la racine de votre clé USB ou ISO
+        2. Renommez-le exactement en "autounattend.xml" (tout en minuscules)
+        3. L'installation sera automatique au démarrage
+        
+        PERSONNALISATION:
+        - Modifiez les valeurs entre <Value>...</Value>
+        - Langue: fr-FR (français)
+        - Clavier: French (AZERTY)
+        - Compte utilisateur local (pas de compte Microsoft)
+        - Paramètres de confidentialité optimisés
+    -->
+    
+    <!-- Configuration Windows PE (Phase de démarrage) -->
+    <settings pass="windowsPE">
+        <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <SetupUILanguage>
+                <UILanguage>fr-FR</UILanguage>
+            </SetupUILanguage>
+            <InputLocale>fr-FR</InputLocale>
+            <SystemLocale>fr-FR</SystemLocale>
+            <UILanguage>fr-FR</UILanguage>
+            <UserLocale>fr-FR</UserLocale>
+        </component>
+        
+        <!-- Configuration du disque -->
+        <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <DiskConfiguration>
+                <Disk wcm:action="add">
+                    <DiskID>0</DiskID>
+                    <WillWipeDisk>true</WillWipeDisk>
+                    <CreatePartitions>
+                        <!-- Partition EFI -->
+                        <CreatePartition wcm:action="add">
+                            <Order>1</Order>
+                            <Type>EFI</Type>
+                            <Size>300</Size>
+                        </CreatePartition>
+                        <!-- Partition MSR -->
+                        <CreatePartition wcm:action="add">
+                            <Order>2</Order>
+                            <Type>MSR</Type>
+                            <Size>128</Size>
+                        </CreatePartition>
+                        <!-- Partition Windows -->
+                        <CreatePartition wcm:action="add">
+                            <Order>3</Order>
+                            <Type>Primary</Type>
+                            <Extend>true</Extend>
+                        </CreatePartition>
+                    </CreatePartitions>
+                    <ModifyPartitions>
+                        <ModifyPartition wcm:action="add">
+                            <Order>1</Order>
+                            <PartitionID>1</PartitionID>
+                            <Label>System</Label>
+                            <Format>FAT32</Format>
+                        </ModifyPartition>
+                        <ModifyPartition wcm:action="add">
+                            <Order>2</Order>
+                            <PartitionID>2</PartitionID>
+                        </ModifyPartition>
+                        <ModifyPartition wcm:action="add">
+                            <Order>3</Order>
+                            <PartitionID>3</PartitionID>
+                            <Label>Windows</Label>
+                            <Format>NTFS</Format>
+                            <Letter>C</Letter>
+                        </ModifyPartition>
+                    </ModifyPartitions>
+                </Disk>
+            </DiskConfiguration>
+            
+            <!-- Image à installer -->
+            <ImageInstall>
+                <OSImage>
+                    <InstallFrom>
+                        <MetaData wcm:action="add">
+                            <Key>/IMAGE/NAME</Key>
+                            <Value>Windows 11 Professionnel</Value>
+                        </MetaData>
+                    </InstallFrom>
+                    <InstallTo>
+                        <DiskID>0</DiskID>
+                        <PartitionID>3</PartitionID>
+                    </InstallTo>
+                </OSImage>
+            </ImageInstall>
+            
+            <!-- Clé produit (optionnel - commenté par défaut) -->
+            <!--
+            <UserData>
+                <ProductKey>
+                    <Key>XXXXX-XXXXX-XXXXX-XXXXX-XXXXX</Key>
+                    <WillShowUI>OnError</WillShowUI>
+                </ProductKey>
+                <AcceptEula>true</AcceptEula>
+            </UserData>
+            -->
+            
+            <UserData>
+                <AcceptEula>true</AcceptEula>
+            </UserData>
+        </component>
+    </settings>
+    
+    <!-- Configuration OOBE (Out-of-Box Experience) -->
+    <settings pass="oobeSystem">
+        <!-- Configuration régionale -->
+        <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <InputLocale>fr-FR</InputLocale>
+            <SystemLocale>fr-FR</SystemLocale>
+            <UILanguage>fr-FR</UILanguage>
+            <UserLocale>fr-FR</UserLocale>
+        </component>
+        
+        <!-- Configuration Shell -->
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <!-- OOBE (Out Of Box Experience) -->
+            <OOBE>
+                <HideEULAPage>true</HideEULAPage>
+                <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
+                <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+                <HideWirelessSetupInOOBE>false</HideWirelessSetupInOOBE>
+                <ProtectYourPC>3</ProtectYourPC>
+                <SkipUserOOBE>true</SkipUserOOBE>
+                <SkipMachineOOBE>true</SkipMachineOOBE>
+            </OOBE>
+            
+            <!-- Nom de l'ordinateur -->
+            <ComputerName>PC-WINDOWS11PRO</ComputerName>
+            
+            <!-- Comptes utilisateurs -->
+            <UserAccounts>
+                <LocalAccounts>
+                    <!-- Compte administrateur local -->
+                    <LocalAccount wcm:action="add">
+                        <Name>Administrateur</Name>
+                        <DisplayName>Administrateur</DisplayName>
+                        <Group>Administrators</Group>
+                        <Password>
+                            <Value></Value>
+                            <PlainText>true</PlainText>
+                        </Password>
+                    </LocalAccount>
+                    
+                    <!-- Compte utilisateur standard désactivé -->
+                    <!--
+                    <LocalAccount wcm:action="add">
+                        <Name>Utilisateur</Name>
+                        <DisplayName>Utilisateur</DisplayName>
+                        <Group>Users</Group>
+                        <Password>
+                            <Value>UABhAHMAcwB3AG8AcgBkADEAMgAzAAEAAAA=</Value>
+                            <PlainText>false</PlainText>
+                        </Password>
+                    </LocalAccount>
+                    -->
+                </LocalAccounts>
+            </UserAccounts>
+            
+            <!-- Fuseau horaire -->
+            <TimeZone>Romance Standard Time</TimeZone>
+            
+            <!-- Première ouverture de session (désactivée - mot de passe vide) -->
+            <!--
+            <AutoLogon>
+                <Enabled>true</Enabled>
+                <Username>Administrateur</Username>
+                <Password>
+                    <Value></Value>
+                    <PlainText>true</PlainText>
+                </Password>
+                <LogonCount>1</LogonCount>
+            </AutoLogon>
+            -->
+            
+            <!-- 
+                FirstLogonCommands: DÉSACTIVÉ pour éviter les erreurs d'installation
+                Les scripts sont exécutés via SetupComplete.cmd et tâches planifiées à la place
+            -->
+        </component>
+    </settings>
+    
+    <!-- Configuration Specialize (Personnalisation système) -->
+    <settings pass="specialize">
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <!-- Nom de l'ordinateur -->
+            <ComputerName>XPOLARIS-PC</ComputerName>
+            
+            <!-- Informations OEM Xpolaris -->
+            <OEMInformation>
+                <Manufacturer>Xpolaris</Manufacturer>
+                <Model>Xpolaris OS - Edition Personnalisee</Model>
+                <Logo>C:\Windows\System32\oemlogo.bmp</Logo>
+                <SupportHours>24/7 - Xpolaris Support</SupportHours>
+                <SupportPhone>+33 X-POLARIS</SupportPhone>
+                <SupportURL>https://xpolaris.local</SupportURL>
+            </OEMInformation>
+        </component>
+        
+        <!-- Désactiver les services inutiles -->
+        <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <RunSynchronous>
+                <!-- CRITIQUE : Activer le compte Administrateur AVANT le premier démarrage -->
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>1</Order>
+                    <Path>net user Administrateur /active:yes</Path>
+                    <Description>Activer le compte Administrateur local</Description>
+                </RunSynchronousCommand>
+                
+                <!-- Bloquer la réinstallation automatique des applications -->
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>2</Order>
+                    <Path>reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableWindowsConsumerFeatures /t REG_DWORD /d 1 /f</Path>
+                    <Description>Bloquer applications Microsoft Store</Description>
+                </RunSynchronousCommand>
+                
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>3</Order>
+                    <Path>reg add "HKLM\SOFTWARE\Policies\Microsoft\WindowsStore" /v AutoDownload /t REG_DWORD /d 2 /f</Path>
+                    <Description>Désactiver téléchargement auto Store</Description>
+                </RunSynchronousCommand>
+                
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>4</Order>
+                    <Path>reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v SilentInstalledAppsEnabled /t REG_DWORD /d 0 /f</Path>
+                    <Description>Bloquer installation silencieuse apps</Description>
+                </RunSynchronousCommand>
+                
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>5</Order>
+                    <Path>reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v PreInstalledAppsEnabled /t REG_DWORD /d 0 /f</Path>
+                    <Description>Bloquer apps préinstallées</Description>
+                </RunSynchronousCommand>
+                
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>6</Order>
+                    <Path>reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v OemPreInstalledAppsEnabled /t REG_DWORD /d 0 /f</Path>
+                    <Description>Bloquer apps OEM</Description>
+                </RunSynchronousCommand>
+                
+                <!-- Désactiver OneDrive -->
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>7</Order>
+                    <Path>reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive" /v DisableFileSyncNGSC /t REG_DWORD /d 1 /f</Path>
+                    <Description>Désactiver OneDrive</Description>
+                </RunSynchronousCommand>
+                
+                <!-- Désactiver Xbox Game Bar -->
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>8</Order>
+                    <Path>reg add "HKLM\SOFTWARE\Microsoft\PolicyManager\default\ApplicationManagement\AllowGameDVR" /v value /t REG_DWORD /d 0 /f</Path>
+                    <Description>Désactiver Xbox Game Bar</Description>
+                </RunSynchronousCommand>
+                
+                <!-- Bloquer Microsoft Teams -->
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>9</Order>
+                    <Path>reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications" /v ConfigureChatAutoInstall /t REG_DWORD /d 0 /f</Path>
+                    <Description>Bloquer Microsoft Teams</Description>
+                </RunSynchronousCommand>
+                
+                <!-- Désactiver la télémétrie -->
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>10</Order>
+                    <Path>reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v AllowTelemetry /t REG_DWORD /d 0 /f</Path>
+                </RunSynchronousCommand>
+                
+                <!-- Désactiver Cortana -->
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>11</Order>
+                    <Path>reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowCortana /t REG_DWORD /d 0 /f</Path>
+                </RunSynchronousCommand>
+                
+                <!-- Contourner l'obligation de connexion réseau (OOBE\BYPASSNRO) -->
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>12</Order>
+                    <Path>reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE" /v BypassNRO /t REG_DWORD /d 1 /f</Path>
+                    <Description>Activer l'option "Je n'ai pas internet"</Description>
+                </RunSynchronousCommand>
+            </RunSynchronous>
+        </component>
+    </settings>
+</unattend>
+
