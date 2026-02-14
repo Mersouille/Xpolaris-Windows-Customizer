@@ -202,6 +202,7 @@ $xaml = @"
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <!-- Colonne 1 -->
@@ -293,8 +294,24 @@ $xaml = @"
                             </StackPanel>
                         </GroupBox>
 
-                        <!-- Ligne 3 : Boutons rapides -->
-                        <Border Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Background="#2D2D44" CornerRadius="6" Padding="10,8" Margin="8,5">
+                        <!-- Ligne 3 : Applications a installer via winget -->
+                        <GroupBox Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="2" Header="Applications a installer (post-installation via winget)">
+                            <WrapPanel>
+                                <CheckBox Name="chkInstall7Zip" Content="7-Zip" IsChecked="True" Margin="5,3" ToolTip="winget: 7zip.7zip"/>
+                                <CheckBox Name="chkInstallNotepadPP" Content="Notepad++" IsChecked="True" Margin="5,3" ToolTip="winget: Notepad++.Notepad++"/>
+                                <CheckBox Name="chkInstallChrome" Content="Google Chrome" IsChecked="True" Margin="5,3" ToolTip="winget: Google.Chrome"/>
+                                <CheckBox Name="chkInstallCCleaner" Content="CCleaner" IsChecked="True" Margin="5,3" ToolTip="winget: Piriform.CCleaner"/>
+                                <CheckBox Name="chkInstallVLC" Content="VLC Media Player" IsChecked="True" Margin="5,3" ToolTip="winget: VideoLAN.VLC"/>
+                                <CheckBox Name="chkInstallTeamViewer" Content="TeamViewer" IsChecked="False" Margin="5,3" ToolTip="winget: TeamViewer.TeamViewer"/>
+                            </WrapPanel>
+                        </GroupBox>
+
+                        <GroupBox Grid.Column="2" Grid.Row="2" Header="Info apps">
+                            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#AAAAAA" Margin="3">Les applications cochees seront installees automatiquement au premier demarrage de Windows via winget (necessite connexion internet). Un fallback par telechargement direct est disponible si winget est absent.</TextBlock>
+                        </GroupBox>
+
+                        <!-- Ligne 4 : Boutons rapides -->
+                        <Border Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="3" Background="#2D2D44" CornerRadius="6" Padding="10,8" Margin="8,5">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <Button Name="btnSelectAll" Content="Tout cocher" Style="{StaticResource ModernButton}" Width="140" Background="#4CAF50" Margin="5,0" FontSize="12"/>
                                 <Button Name="btnDeselectAll" Content="Tout decocher" Style="{StaticResource ModernButton}" Width="140" Background="#F44336" Margin="5,0" FontSize="12"/>
@@ -465,6 +482,14 @@ $chkRemoveBloatPost = $window.FindName("chkRemoveBloatPost")
 $chkAppsManager = $window.FindName("chkAppsManager")
 $chkSetupComplete = $window.FindName("chkSetupComplete")
 $chkAutoUnattend = $window.FindName("chkAutoUnattend")
+
+# Nouveaux controles - Applications a installer
+$chkInstall7Zip = $window.FindName("chkInstall7Zip")
+$chkInstallNotepadPP = $window.FindName("chkInstallNotepadPP")
+$chkInstallChrome = $window.FindName("chkInstallChrome")
+$chkInstallCCleaner = $window.FindName("chkInstallCCleaner")
+$chkInstallVLC = $window.FindName("chkInstallVLC")
+$chkInstallTeamViewer = $window.FindName("chkInstallTeamViewer")
 
 # ============================================
 # FONCTIONS UTILITAIRES
@@ -1177,14 +1202,103 @@ function Start-CompleteProcess {
         }
         
         if ($chkAppsManager.IsChecked) {
-            if (Test-Path "$scriptDir\Xpolaris-Apps-Manager.ps1") {
-                Copy-Item "$scriptDir\Xpolaris-Apps-Manager.ps1" "$customISODir\sources\Xpolaris-Apps-Manager.ps1" -Force
-                Copy-Item "$scriptDir\Xpolaris-Apps-Manager.ps1" "$oemScriptsDir\Xpolaris-Apps-Manager.ps1" -Force
+            # Construire la liste des apps selectionnees
+            $selectedApps = @()
+            $selectedFallback = @()
+            if ($chkInstall7Zip.IsChecked) {
+                $selectedApps += '            @{ Name = "7-Zip"; Id = "7zip.7zip"; Icon = "[7Z]" }'
+                $selectedFallback += '            @{ Name = "7-Zip"; Url = "https://www.7-zip.org/a/7z2408-x64.exe"; FileName = "7z-Setup.exe"; Args = "/S" }'
+            }
+            if ($chkInstallNotepadPP.IsChecked) {
+                $selectedApps += '            @{ Name = "Notepad++"; Id = "Notepad++.Notepad++"; Icon = "[NPP]" }'
+                $selectedFallback += '            @{ Name = "Notepad++"; Url = "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.6.9/npp.8.6.9.Installer.x64.exe"; FileName = "NotepadPP-Setup.exe"; Args = "/S" }'
+            }
+            if ($chkInstallChrome.IsChecked) {
+                $selectedApps += '            @{ Name = "Google Chrome"; Id = "Google.Chrome"; Icon = "[WEB]" }'
+                $selectedFallback += '            @{ Name = "Google Chrome"; Url = "https://dl.google.com/chrome/install/latest/chrome_installer.exe"; FileName = "ChromeSetup.exe"; Args = "/silent /install" }'
+            }
+            if ($chkInstallCCleaner.IsChecked) {
+                $selectedApps += '            @{ Name = "CCleaner"; Id = "Piriform.CCleaner"; Icon = "[CC]" }'
+                $selectedFallback += '            @{ Name = "CCleaner"; Url = "https://download.ccleaner.com/ccsetup.exe"; FileName = "CCleaner-Setup.exe"; Args = "/S" }'
+            }
+            if ($chkInstallVLC.IsChecked) {
+                $selectedApps += '            @{ Name = "VLC Media Player"; Id = "VideoLAN.VLC"; Icon = "[VLC]" }'
+                $selectedFallback += '            @{ Name = "VLC Media Player"; Url = "https://get.videolan.org/vlc/3.0.20/win64/vlc-3.0.20-win64.exe"; FileName = "VLC-Setup.exe"; Args = "/L=1036 /S" }'
+            }
+            if ($chkInstallTeamViewer.IsChecked) {
+                $selectedApps += '            @{ Name = "TeamViewer"; Id = "TeamViewer.TeamViewer"; Icon = "[TV]" }'
+                $selectedFallback += '            @{ Name = "TeamViewer"; Url = "https://download.teamviewer.com/download/TeamViewer_Setup_x64.exe"; FileName = "TeamViewer-Setup.exe"; Args = "/S" }'
+            }
+
+            $appCount = $selectedApps.Count
+            if ($appCount -gt 0) {
+                # Generer le script dynamiquement
+                $appsBlock = $selectedApps -join "`r`n"
+                $fallbackBlock = $selectedFallback -join "`r`n"
+                $appsManagerContent = @"
+# Xpolaris Apps Manager - Genere automatiquement par Xpolaris GUI
+# Applications selectionnees : $appCount
+param([switch]`$AutoMode)
+`$ErrorActionPreference = "Continue"
+`$IsScheduledTask = `$AutoMode
+if (`$IsScheduledTask) {
+    `$LogFile = "C:\InstallApps.log"
+    `$StartTime = Get-Date
+    function Write-Log { param([string]`$Message); `$ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss"; "`$ts - `$Message" | Out-File -FilePath `$LogFile -Append -Encoding UTF8; Write-Host `$Message }
+    Write-Log "============================================"
+    Write-Log "INSTALLATION AUTOMATIQUE DES APPLICATIONS"
+    Write-Log "Xpolaris OS - $appCount applications selectionnees"
+    Write-Log "============================================"
+    try { `$Task = Get-ScheduledTask -TaskName "XpolarisInstallApps" -ErrorAction SilentlyContinue; if (`$Task) { Unregister-ScheduledTask -TaskName "XpolarisInstallApps" -Confirm:`$false -ErrorAction Stop; Write-Log "[OK] Tache planifiee supprimee" } } catch { Write-Log "[AVERTISSEMENT] `$_" }
+    Write-Log "[ATTENTE] 60 secondes pour demarrage complet..."
+    Start-Sleep -Seconds 60
+    `$MaxWait = 900; `$Wait = 0; `$WingetOK = `$false
+    while (-not `$WingetOK -and `$Wait -lt `$MaxWait) {
+        try { `$v = winget --version 2>&1; if (`$LASTEXITCODE -eq 0 -and `$v -match "v[\d\.]+") { `$WingetOK = `$true; Write-Log "[OK] winget disponible : `$v" } else { Start-Sleep 20; `$Wait += 20 } } catch { Start-Sleep 20; `$Wait += 20 }
+    }
+    `$OK = 0; `$KO = 0
+    if (-not `$WingetOK) {
+        Write-Log "[INFO] Basculement FALLBACK (telechargement direct)..."
+        `$FallbackApps = @(
+$fallbackBlock
+        )
+        `$DL = "`$env:TEMP\XpolarisApps"; if (-not (Test-Path `$DL)) { New-Item -ItemType Directory -Path `$DL -Force | Out-Null }
+        foreach (`$App in `$FallbackApps) {
+            Write-Log "[FALLBACK] `$(`$App.Name)..."
+            try { `$Out = Join-Path `$DL `$App.FileName; `$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri `$App.Url -OutFile `$Out -UseBasicParsing -TimeoutSec 300 -ErrorAction Stop; `$P = Start-Process -FilePath `$Out -ArgumentList `$App.Args -Wait -PassThru -NoNewWindow -ErrorAction Stop; if (`$P.ExitCode -eq 0 -or `$P.ExitCode -eq 3010) { Write-Log "  [OK] `$(`$App.Name) installe"; `$OK++ } else { Write-Log "  [ERREUR] Code: `$(`$P.ExitCode)"; `$KO++ }; Remove-Item `$Out -Force -ErrorAction SilentlyContinue } catch { Write-Log "  [ERREUR] `$_"; `$KO++ }
+            Start-Sleep 3
+        }
+    } else {
+        Start-Sleep 30
+        `$Apps = @(
+$appsBlock
+        )
+        Write-Log "[INFO] Installation de `$(`$Apps.Count) applications..."
+        foreach (`$App in `$Apps) {
+            Write-Log "[`$(`$App.Icon)] `$(`$App.Name)..."
+            try { `$R = winget install --id `$App.Id --silent --accept-package-agreements --accept-source-agreements 2>&1; if (`$LASTEXITCODE -eq 0) { Write-Log "    [OK] `$(`$App.Name) installe"; `$OK++ } else { Write-Log "    [ERREUR] Code: `$LASTEXITCODE"; `$KO++ } } catch { Write-Log "    [ERREUR] `$_"; `$KO++ }
+            Start-Sleep 5
+        }
+    }
+    `$Duration = ((Get-Date) - `$StartTime).TotalMinutes
+    Write-Log "============================================"
+    Write-Log "TERMINE - Succes: `$OK | Echecs: `$KO | Duree: `$([math]::Round(`$Duration,2)) min"
+    Write-Log "============================================"
+    try { Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show("Installation terminee : `$OK apps installees (`$KO echecs)", "Xpolaris Apps", 0, 64) | Out-Null } catch { `$null = `$_ }
+    exit 0
+}
+Write-Host "Xpolaris Apps Manager - Lancez avec -AutoMode pour installer automatiquement"
+"@
+                if (-not (Test-Path $oemScriptsDir)) { New-Item -ItemType Directory -Path $oemScriptsDir -Force | Out-Null }
+                $appsManagerContent | Set-Content "$oemScriptsDir\Xpolaris-Apps-Manager.ps1" -Force -Encoding UTF8
+                Copy-Item "$oemScriptsDir\Xpolaris-Apps-Manager.ps1" "$customISODir\sources\Xpolaris-Apps-Manager.ps1" -Force
                 # Copier aussi sur le bureau Admin
                 $adminDesktop = "$customISODir\sources\`$OEM`$\`$`$\Users\Administrateur\Desktop"
                 if (-not (Test-Path $adminDesktop)) { New-Item -ItemType Directory -Path $adminDesktop -Force | Out-Null }
-                Copy-Item "$scriptDir\Xpolaris-Apps-Manager.ps1" "$adminDesktop\Xpolaris-Apps-Manager.ps1" -Force
-                Write-Log "  Xpolaris-Apps-Manager.ps1 copie" "Info"
+                Copy-Item "$oemScriptsDir\Xpolaris-Apps-Manager.ps1" "$adminDesktop\Xpolaris-Apps-Manager.ps1" -Force
+                Write-Log "  Xpolaris-Apps-Manager.ps1 genere ($appCount apps : $(if($chkInstall7Zip.IsChecked){'7-Zip '})$(if($chkInstallNotepadPP.IsChecked){'Notepad++ '})$(if($chkInstallChrome.IsChecked){'Chrome '})$(if($chkInstallCCleaner.IsChecked){'CCleaner '})$(if($chkInstallVLC.IsChecked){'VLC '})$(if($chkInstallTeamViewer.IsChecked){'TeamViewer'}))" "Success"
+            } else {
+                Write-Log "  Aucune application selectionnee pour l'installation" "Warning"
             }
             if (Test-Path "$scriptDir\Xpolaris-Apps-Manager.cmd") {
                 Copy-Item "$scriptDir\Xpolaris-Apps-Manager.cmd" "$oemScriptsDir\Xpolaris-Apps-Manager.cmd" -Force
@@ -1545,6 +1659,7 @@ $btnSelectAll.Add_Click({
         $chkDiagTrack, $chkWSearch, $chkSuperFetch, $chkPrint,
         $chkOEMBranding, $chkActivateAdmin, $chkWallpaper, $chkRemoveBloatPost,
         $chkAppsManager, $chkSetupComplete, $chkAutoUnattend,
+        $chkInstall7Zip, $chkInstallNotepadPP, $chkInstallChrome, $chkInstallCCleaner, $chkInstallVLC, $chkInstallTeamViewer,
         $chkCompact, $chkCleanup, $chkOptimizeWim
     )
     foreach ($cb in $allCheckboxes) { if ($cb) { $cb.IsChecked = $true } }
@@ -1565,6 +1680,7 @@ $btnDeselectAll.Add_Click({
         $chkDiagTrack, $chkWSearch, $chkSuperFetch, $chkPrint,
         $chkOEMBranding, $chkActivateAdmin, $chkWallpaper, $chkRemoveBloatPost,
         $chkAppsManager, $chkSetupComplete, $chkAutoUnattend,
+        $chkInstall7Zip, $chkInstallNotepadPP, $chkInstallChrome, $chkInstallCCleaner, $chkInstallVLC, $chkInstallTeamViewer,
         $chkCompact, $chkCleanup, $chkOptimizeWim
     )
     foreach ($cb in $allCheckboxes) { if ($cb) { $cb.IsChecked = $false } }
@@ -1586,6 +1702,7 @@ $btnRecommended.Add_Click({
         $chkDiagTrack, $chkWSearch, $chkSuperFetch, $chkPrint,
         $chkOEMBranding, $chkActivateAdmin, $chkWallpaper, $chkRemoveBloatPost,
         $chkAppsManager, $chkSetupComplete, $chkAutoUnattend,
+        $chkInstall7Zip, $chkInstallNotepadPP, $chkInstallChrome, $chkInstallCCleaner, $chkInstallVLC, $chkInstallTeamViewer,
         $chkCompact, $chkCleanup, $chkOptimizeWim
     )
     foreach ($cb in $allCheckboxes) { if ($cb) { $cb.IsChecked = $false } }
@@ -1602,6 +1719,7 @@ $btnRecommended.Add_Click({
         $chkDiagTrack,
         $chkOEMBranding, $chkActivateAdmin, $chkWallpaper, $chkRemoveBloatPost,
         $chkAppsManager, $chkSetupComplete, $chkAutoUnattend,
+        $chkInstall7Zip, $chkInstallNotepadPP, $chkInstallChrome, $chkInstallCCleaner, $chkInstallVLC,
         $chkCleanup, $chkOptimizeWim
     )
     foreach ($cb in $recommended) { if ($cb) { $cb.IsChecked = $true } }
