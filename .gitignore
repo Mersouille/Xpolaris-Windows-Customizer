@@ -1,6 +1,5 @@
 # Fichiers compiles et executables
 *.exe
-!rufus-*.exe
 !release-v*/*.exe
 
 # Dossiers de travail
@@ -14,16 +13,16 @@ CustomISO/
 *.log
 *.bak
 
-# Fichiers de sauvegarde corrompus
+# Fichiers de sauvegarde
 *-backup-corrupt.ps1
-*-OLD.exe
+*-OLD.*
 
 # Fichiers Windows
 Thumbs.db
 Desktop.ini
 *.lnk
 
-# Fichiers ISO (trop volumineux)
+# Fichiers ISO et images (trop volumineux)
 *.iso
 *.wim
 *.esd
@@ -48,11 +47,7 @@ test/
 tests/
 *.test.ps1
 
-# Documentation generee
-docs/*.html
-
-# Autres
+# Archives (releases via GitHub Releases, pas dans le repo)
 *.zip
 *.7z
 *.rar
-!Xpolaris-Windows-Customizer-v*.zip
