@@ -218,6 +218,11 @@ $xaml = @"
                                 <CheckBox Name="chkFeedback" Content="Feedback Hub" IsChecked="True"/>
                                 <CheckBox Name="chkTips" Content="Astuces Windows" IsChecked="True"/>
                                 <CheckBox Name="chkSolitaire" Content="Solitaire Collection" IsChecked="True"/>
+                                <CheckBox Name="chkOutlook" Content="Outlook for Windows" IsChecked="True"/>
+                                <CheckBox Name="chkLinkedIn" Content="LinkedIn" IsChecked="True"/>
+                                <CheckBox Name="chkQuickAssist" Content="Assistance rapide" IsChecked="True"/>
+                                <CheckBox Name="chkSoundRecorder" Content="Enregistreur vocal" IsChecked="True"/>
+                                <CheckBox Name="chkGamingApp" Content="Casual Games (Gaming App)" IsChecked="True"/>
                                 <CheckBox Name="chkClipchamp" Content="Clipchamp" IsChecked="True"/>
                                 <CheckBox Name="chkTodos" Content="Microsoft To Do" IsChecked="True"/>
                                 <CheckBox Name="chkPowerAutomate" Content="Power Automate Desktop" IsChecked="True"/>
@@ -276,9 +281,9 @@ $xaml = @"
 
                         <GroupBox Grid.Column="1" Grid.Row="1" Header="Post-Installation Xpolaris">
                             <StackPanel>
-                                <CheckBox Name="chkOEMBranding" Content="Branding OEM Xpolaris" IsChecked="True" ToolTip="Ajoute Xpolaris comme fabricant dans Systeme"/>
+                                <CheckBox Name="chkOEMBranding" Content="Branding OEM Xpolaris" IsChecked="False" ToolTip="Ajoute Xpolaris comme fabricant dans Systeme"/>
                                 <CheckBox Name="chkActivateAdmin" Content="Activer compte Administrateur" IsChecked="True"/>
-                                <CheckBox Name="chkWallpaper" Content="Fond d'ecran Xpolaris" IsChecked="True" ToolTip="Copie et applique le wallpaper Xpolaris"/>
+                                <CheckBox Name="chkWallpaper" Content="Fond d'ecran Xpolaris" IsChecked="False" ToolTip="Copie et applique le wallpaper Xpolaris"/>
                                 <CheckBox Name="chkRemoveBloatPost" Content="Script RemoveBloatware post-install" IsChecked="True" ToolTip="Nettoyage supplementaire au 1er demarrage"/>
                                 <CheckBox Name="chkAppsManager" Content="Xpolaris Apps Manager (tache)" IsChecked="True" ToolTip="Installe les apps recommandees au login"/>
                                 <CheckBox Name="chkSetupComplete" Content="SetupComplete.cmd (post-install)" IsChecked="True" ToolTip="Script maitre d'automatisation post-installation"/>
@@ -460,6 +465,11 @@ $chkRemoveMixedReality = $window.FindName("chkRemoveMixedReality")
 $chkRemoveWallet = $window.FindName("chkRemoveWallet")
 
 # Nouveaux controles - Apps supplementaires
+$chkOutlook = $window.FindName("chkOutlook")
+$chkLinkedIn = $window.FindName("chkLinkedIn")
+$chkQuickAssist = $window.FindName("chkQuickAssist")
+$chkSoundRecorder = $window.FindName("chkSoundRecorder")
+$chkGamingApp = $window.FindName("chkGamingApp")
 $chkClipchamp = $window.FindName("chkClipchamp")
 $chkTodos = $window.FindName("chkTodos")
 $chkPowerAutomate = $window.FindName("chkPowerAutomate")
@@ -966,6 +976,11 @@ function Start-CompleteProcess {
         if ($chkFeedback.IsChecked) { $appsToRemove += "Microsoft.WindowsFeedbackHub" }
         if ($chkTips.IsChecked) { $appsToRemove += @("Microsoft.GetHelp", "Microsoft.Getstarted") }
         if ($chkSolitaire.IsChecked) { $appsToRemove += "Microsoft.MicrosoftSolitaireCollection" }
+        if ($chkOutlook.IsChecked) { $appsToRemove += "Microsoft.OutlookForWindows" }
+        if ($chkLinkedIn.IsChecked) { $appsToRemove += "Microsoft.LinkedIn" }
+        if ($chkQuickAssist.IsChecked) { $appsToRemove += "MicrosoftCorporationII.QuickAssist" }
+        if ($chkSoundRecorder.IsChecked) { $appsToRemove += "Microsoft.WindowsSoundRecorder" }
+        if ($chkGamingApp.IsChecked) { $appsToRemove += @("Microsoft.GamingApp", "Microsoft.Xbox.TCUI", "Microsoft.XboxGamingOverlay") }
         if ($chkClipchamp.IsChecked) { $appsToRemove += @("Clipchamp.Clipchamp", "Microsoft.Clipchamp") }
         if ($chkTodos.IsChecked) { $appsToRemove += "Microsoft.Todos" }
         if ($chkPowerAutomate.IsChecked) { $appsToRemove += "Microsoft.PowerAutomateDesktop" }
@@ -1695,7 +1710,8 @@ $btnAbout.Add_Click({
 $btnSelectAll.Add_Click({
     $allCheckboxes = @(
         $chkCortana, $chkXbox, $chkOneDrive, $chkTeams, $chkSkype, $chkNews, $chkMaps,
-        $chkFeedback, $chkTips, $chkSolitaire, $chkClipchamp, $chkTodos, $chkPowerAutomate,
+        $chkFeedback, $chkTips, $chkSolitaire, $chkOutlook, $chkLinkedIn, $chkQuickAssist,
+        $chkSoundRecorder, $chkGamingApp, $chkClipchamp, $chkTodos, $chkPowerAutomate,
         $chkPeople, $chkOfficeHub, $chkZuneMusic, $chkZuneVideo,
         $chkRemoveIE, $chkRemoveWMP, $chkRemovePaint3D, $chkRemoveFax, $chkRemoveHelloFace,
         $chkRemoveWordPad, $chkRemoveXboxSvc, $chkRemovePhoneLink, $chkRemoveLangPacks,
@@ -1716,7 +1732,8 @@ $btnSelectAll.Add_Click({
 $btnDeselectAll.Add_Click({
     $allCheckboxes = @(
         $chkCortana, $chkXbox, $chkOneDrive, $chkTeams, $chkSkype, $chkNews, $chkMaps,
-        $chkFeedback, $chkTips, $chkSolitaire, $chkClipchamp, $chkTodos, $chkPowerAutomate,
+        $chkFeedback, $chkTips, $chkSolitaire, $chkOutlook, $chkLinkedIn, $chkQuickAssist,
+        $chkSoundRecorder, $chkGamingApp, $chkClipchamp, $chkTodos, $chkPowerAutomate,
         $chkPeople, $chkOfficeHub, $chkZuneMusic, $chkZuneVideo,
         $chkRemoveIE, $chkRemoveWMP, $chkRemovePaint3D, $chkRemoveFax, $chkRemoveHelloFace,
         $chkRemoveWordPad, $chkRemoveXboxSvc, $chkRemovePhoneLink, $chkRemoveLangPacks,
@@ -1738,7 +1755,8 @@ $btnRecommended.Add_Click({
     # D'abord tout decocher
     $allCheckboxes = @(
         $chkCortana, $chkXbox, $chkOneDrive, $chkTeams, $chkSkype, $chkNews, $chkMaps,
-        $chkFeedback, $chkTips, $chkSolitaire, $chkClipchamp, $chkTodos, $chkPowerAutomate,
+        $chkFeedback, $chkTips, $chkSolitaire, $chkOutlook, $chkLinkedIn, $chkQuickAssist,
+        $chkSoundRecorder, $chkGamingApp, $chkClipchamp, $chkTodos, $chkPowerAutomate,
         $chkPeople, $chkOfficeHub, $chkZuneMusic, $chkZuneVideo,
         $chkRemoveIE, $chkRemoveWMP, $chkRemovePaint3D, $chkRemoveFax, $chkRemoveHelloFace,
         $chkRemoveWordPad, $chkRemoveXboxSvc, $chkRemovePhoneLink, $chkRemoveLangPacks,
@@ -1756,7 +1774,8 @@ $btnRecommended.Add_Click({
     # Puis cocher les recommandes
     $recommended = @(
         $chkCortana, $chkXbox, $chkOneDrive, $chkTeams, $chkSkype, $chkNews, $chkMaps,
-        $chkFeedback, $chkTips, $chkSolitaire, $chkClipchamp, $chkTodos, $chkPowerAutomate,
+        $chkFeedback, $chkTips, $chkSolitaire, $chkOutlook, $chkLinkedIn, $chkQuickAssist,
+        $chkSoundRecorder, $chkGamingApp, $chkClipchamp, $chkTodos, $chkPowerAutomate,
         $chkPeople, $chkOfficeHub, $chkZuneMusic, $chkZuneVideo,
         $chkRemoveIE, $chkRemoveWMP, $chkRemovePaint3D, $chkRemoveFax,
         $chkRemoveWordPad, $chkRemoveXboxSvc, $chkRemovePhoneLink,
@@ -1764,7 +1783,7 @@ $btnRecommended.Add_Click({
         $chkTelemetry, $chkStartMenu, $chkTaskbar, $chkExplorer, $chkShowHidden,
         $chkSyncNotif, $chkWidgets, $chkCopilot, $chkRecall, $chkPerformance, $chkContentDelivery,
         $chkDiagTrack,
-        $chkOEMBranding, $chkActivateAdmin, $chkWallpaper, $chkRemoveBloatPost,
+        $chkActivateAdmin, $chkRemoveBloatPost,
         $chkAppsManager, $chkSetupComplete, $chkAutoUnattend,
         $chkInstall7Zip, $chkInstallNotepadPP, $chkInstallChrome, $chkInstallCCleaner, $chkInstallVLC,
         $chkCleanup, $chkOptimizeWim
