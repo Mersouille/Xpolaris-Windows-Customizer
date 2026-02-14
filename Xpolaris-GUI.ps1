@@ -166,13 +166,24 @@ $xaml = @"
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <StackPanel Grid.Row="0">
                                 <TextBlock Text="Selectionnez l'edition a extraire :" Margin="0,0,0,10"/>
                                 <Button Name="btnLoadEditions" Content="Charger les editions disponibles" Style="{StaticResource ModernButton}" HorizontalAlignment="Left"/>
                             </StackPanel>
                             <ListBox Name="lstEditions" Grid.Row="1" Margin="0,15,0,0" Background="#383838" Foreground="White" BorderBrush="#555555" FontSize="13" Padding="5"/>
-                            <Button Name="btnExtractEdition" Grid.Row="2" Content="Extraire l'edition selectionnee uniquement" Style="{StaticResource ModernButton}" HorizontalAlignment="Right" Margin="0,10,0,0" IsEnabled="False"/>
+                            
+                            <!-- Champ affichant l'edition selectionnee -->
+                            <Border Grid.Row="2" Background="#2D2D44" CornerRadius="4" Padding="10,8" Margin="0,10,0,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Edition choisie : " Foreground="#888888" VerticalAlignment="Center"/>
+                                    <TextBlock Name="lblSelectedEdition" Text="Aucune selection" Foreground="#00C9FF" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- Bouton d'extraction optionnel (moins visible) -->
+                            <Button Name="btnExtractEdition" Grid.Row="3" Content="Pre-extraire (optionnel)" Style="{StaticResource ModernButton}" HorizontalAlignment="Right" Margin="0,10,0,0" IsEnabled="False" Background="#555555" FontSize="11" Padding="10,5" ToolTip="Optionnel : Pre-extrait l'edition avant le processus complet"/>
                         </Grid>
                     </GroupBox>
                 </Grid>
@@ -358,6 +369,7 @@ $lblStatus = $window.FindName("lblStatus")
 $lblISOInfo = $window.FindName("lblISOInfo")
 $lblVersion = $window.FindName("lblVersion")
 $lblOutputPath = $window.FindName("lblOutputPath")
+$lblSelectedEdition = $window.FindName("lblSelectedEdition")
 $mainTabControl = $window.FindName("mainTabControl")
 
 # ============================================
@@ -1134,6 +1146,17 @@ $btnAbout.Add_Click({
 $lstEditions.Add_SelectionChanged({
     if ($lstEditions.SelectedIndex -ge 0) {
         $btnExtractEdition.IsEnabled = $true
+        # Mettre a jour le label de l'edition selectionnee
+        $selectedItem = $lstEditions.SelectedItem
+        if ($selectedItem -match "^\d+\s*-\s*(.+)$") {
+            $lblSelectedEdition.Text = $Matches[1]
+        } else {
+            $lblSelectedEdition.Text = $selectedItem
+        }
+        $lblSelectedEdition.Foreground = "#4CAF50"
+    } else {
+        $lblSelectedEdition.Text = "Aucune selection"
+        $lblSelectedEdition.Foreground = "#00C9FF"
     }
 })
 
