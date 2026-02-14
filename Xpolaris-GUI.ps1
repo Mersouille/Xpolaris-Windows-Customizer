@@ -1232,63 +1232,110 @@ function Start-CompleteProcess {
 
             $appCount = $selectedApps.Count
             if ($appCount -gt 0) {
-                # Generer le script dynamiquement
-                $appsBlock = $selectedApps -join "`r`n"
-                $fallbackBlock = $selectedFallback -join "`r`n"
-                $appsManagerContent = @"
-# Xpolaris Apps Manager - Genere automatiquement par Xpolaris GUI
-# Applications selectionnees : $appCount
-param([switch]`$AutoMode)
-`$ErrorActionPreference = "Continue"
-`$IsScheduledTask = `$AutoMode
-if (`$IsScheduledTask) {
-    `$LogFile = "C:\InstallApps.log"
-    `$StartTime = Get-Date
-    function Write-Log { param([string]`$Message); `$ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss"; "`$ts - `$Message" | Out-File -FilePath `$LogFile -Append -Encoding UTF8; Write-Host `$Message }
-    Write-Log "============================================"
-    Write-Log "INSTALLATION AUTOMATIQUE DES APPLICATIONS"
-    Write-Log "Xpolaris OS - $appCount applications selectionnees"
-    Write-Log "============================================"
-    try { `$Task = Get-ScheduledTask -TaskName "XpolarisInstallApps" -ErrorAction SilentlyContinue; if (`$Task) { Unregister-ScheduledTask -TaskName "XpolarisInstallApps" -Confirm:`$false -ErrorAction Stop; Write-Log "[OK] Tache planifiee supprimee" } } catch { Write-Log "[AVERTISSEMENT] `$_" }
-    Write-Log "[ATTENTE] 60 secondes pour demarrage complet..."
-    Start-Sleep -Seconds 60
-    `$MaxWait = 900; `$Wait = 0; `$WingetOK = `$false
-    while (-not `$WingetOK -and `$Wait -lt `$MaxWait) {
-        try { `$v = winget --version 2>&1; if (`$LASTEXITCODE -eq 0 -and `$v -match "v[\d\.]+") { `$WingetOK = `$true; Write-Log "[OK] winget disponible : `$v" } else { Start-Sleep 20; `$Wait += 20 } } catch { Start-Sleep 20; `$Wait += 20 }
-    }
-    `$OK = 0; `$KO = 0
-    if (-not `$WingetOK) {
-        Write-Log "[INFO] Basculement FALLBACK (telechargement direct)..."
-        `$FallbackApps = @(
-$fallbackBlock
-        )
-        `$DL = "`$env:TEMP\XpolarisApps"; if (-not (Test-Path `$DL)) { New-Item -ItemType Directory -Path `$DL -Force | Out-Null }
-        foreach (`$App in `$FallbackApps) {
-            Write-Log "[FALLBACK] `$(`$App.Name)..."
-            try { `$Out = Join-Path `$DL `$App.FileName; `$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri `$App.Url -OutFile `$Out -UseBasicParsing -TimeoutSec 300 -ErrorAction Stop; `$P = Start-Process -FilePath `$Out -ArgumentList `$App.Args -Wait -PassThru -NoNewWindow -ErrorAction Stop; if (`$P.ExitCode -eq 0 -or `$P.ExitCode -eq 3010) { Write-Log "  [OK] `$(`$App.Name) installe"; `$OK++ } else { Write-Log "  [ERREUR] Code: `$(`$P.ExitCode)"; `$KO++ }; Remove-Item `$Out -Force -ErrorAction SilentlyContinue } catch { Write-Log "  [ERREUR] `$_"; `$KO++ }
-            Start-Sleep 3
-        }
-    } else {
-        Start-Sleep 30
-        `$Apps = @(
-$appsBlock
-        )
-        Write-Log "[INFO] Installation de `$(`$Apps.Count) applications..."
-        foreach (`$App in `$Apps) {
-            Write-Log "[`$(`$App.Icon)] `$(`$App.Name)..."
-            try { `$R = winget install --id `$App.Id --silent --accept-package-agreements --accept-source-agreements 2>&1; if (`$LASTEXITCODE -eq 0) { Write-Log "    [OK] `$(`$App.Name) installe"; `$OK++ } else { Write-Log "    [ERREUR] Code: `$LASTEXITCODE"; `$KO++ } } catch { Write-Log "    [ERREUR] `$_"; `$KO++ }
-            Start-Sleep 5
-        }
-    }
-    `$Duration = ((Get-Date) - `$StartTime).TotalMinutes
-    Write-Log "============================================"
-    Write-Log "TERMINE - Succes: `$OK | Echecs: `$KO | Duree: `$([math]::Round(`$Duration,2)) min"
-    Write-Log "============================================"
-    try { Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show("Installation terminee : `$OK apps installees (`$KO echecs)", "Xpolaris Apps", 0, 64) | Out-Null } catch { `$null = `$_ }
-    exit 0
-}
-Write-Host "Xpolaris Apps Manager - Lancez avec -AutoMode pour installer automatiquement"
-"@
+                # Generer le script dynamiquement avec echappement correct
+                $appsBlock = $selectedApps -join ",`r`n"
+                $fallbackBlock = $selectedFallback -join ",`r`n"
+                
+                # Construire le script ligne par ligne pour eviter les problemes d'echappement
+                $scriptLines = @()
+                $scriptLines += "# Xpolaris Apps Manager - Genere par Xpolaris GUI v4.3.0"
+                $scriptLines += "# Applications : $appCount selectionnees"
+                $scriptLines += "param([switch]`$AutoMode)"
+                $scriptLines += "`$ErrorActionPreference = 'Continue'"
+                $scriptLines += "if (`$AutoMode) {"
+                $scriptLines += "    `$LogFile = 'C:\InstallApps.log'"
+                $scriptLines += "    `$StartTime = Get-Date"
+                $scriptLines += "    function Write-Log { param([string]`$Msg); `$ts = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'; `"`$ts - `$Msg`" | Out-File -FilePath `$LogFile -Append -Encoding UTF8; Write-Host `$Msg }"
+                $scriptLines += "    Write-Log '============================================'"
+                $scriptLines += "    Write-Log 'INSTALLATION AUTOMATIQUE - $appCount APPLICATIONS'"
+                $scriptLines += "    Write-Log 'Xpolaris OS - Edition Personnalisee'"
+                $scriptLines += "    Write-Log '============================================'"
+                $scriptLines += "    try { `$t = Get-ScheduledTask -TaskName 'XpolarisInstallApps' -ErrorAction SilentlyContinue; if (`$t) { Unregister-ScheduledTask -TaskName 'XpolarisInstallApps' -Confirm:`$false; Write-Log '[OK] Tache supprimee' } } catch { Write-Log '[WARN] Tache : `$_' }"
+                $scriptLines += "    Write-Log '[ATTENTE] 60 sec pour demarrage...'"
+                $scriptLines += "    Start-Sleep -Seconds 60"
+                $scriptLines += "    `$MaxWait = 900; `$Waited = 0; `$WingetOK = `$false"
+                $scriptLines += "    while (-not `$WingetOK -and `$Waited -lt `$MaxWait) {"
+                $scriptLines += "        try {"
+                $scriptLines += "            `$ver = winget --version 2>&1 | Out-String"
+                $scriptLines += "            if (`$LASTEXITCODE -eq 0 -and `$ver -match 'v[\d\.]+') {"
+                $scriptLines += "                `$WingetOK = `$true"
+                $scriptLines += "                Write-Log `"[OK] winget disponible : `$ver`""
+                $scriptLines += "            } else {"
+                $scriptLines += "                Start-Sleep -Seconds 20"
+                $scriptLines += "                `$Waited += 20"
+                $scriptLines += "            }"
+                $scriptLines += "        } catch {"
+                $scriptLines += "            Start-Sleep -Seconds 20"
+                $scriptLines += "            `$Waited += 20"
+                $scriptLines += "        }"
+                $scriptLines += "    }"
+                $scriptLines += "    `$SuccessCount = 0; `$FailCount = 0"
+                $scriptLines += "    if (-not `$WingetOK) {"
+                $scriptLines += "        Write-Log '[INFO] Basculement FALLBACK (telechargement direct)'"
+                $scriptLines += "        `$FallbackApps = @("
+                $scriptLines += $fallbackBlock
+                $scriptLines += "        )"
+                $scriptLines += "        `$TempDir = `"`$env:TEMP\XpolarisApps`""
+                $scriptLines += "        if (-not (Test-Path `$TempDir)) { New-Item -ItemType Directory -Path `$TempDir -Force | Out-Null }"
+                $scriptLines += "        foreach (`$AppItem in `$FallbackApps) {"
+                $scriptLines += "            Write-Log `"[FALLBACK] `$(`$AppItem.Name)...`""
+                $scriptLines += "            try {"
+                $scriptLines += "                `$OutFile = Join-Path `$TempDir `$AppItem.FileName"
+                $scriptLines += "                `$ProgressPreference = 'SilentlyContinue'"
+                $scriptLines += "                Write-Log `"  Telechargement : `$(`$AppItem.Url)`""
+                $scriptLines += "                Invoke-WebRequest -Uri `$AppItem.Url -OutFile `$OutFile -UseBasicParsing -TimeoutSec 300 -ErrorAction Stop"
+                $scriptLines += "                Write-Log `"  Installation : `$OutFile`""
+                $scriptLines += "                `$Proc = Start-Process -FilePath `$OutFile -ArgumentList `$AppItem.Args -Wait -PassThru -NoNewWindow -ErrorAction Stop"
+                $scriptLines += "                if (`$Proc.ExitCode -eq 0 -or `$Proc.ExitCode -eq 3010) {"
+                $scriptLines += "                    Write-Log `"  [OK] `$(`$AppItem.Name) installe`""
+                $scriptLines += "                    `$SuccessCount++"
+                $scriptLines += "                } else {"
+                $scriptLines += "                    Write-Log `"  [ERREUR] Code sortie: `$(`$Proc.ExitCode)`""
+                $scriptLines += "                    `$FailCount++"
+                $scriptLines += "                }"
+                $scriptLines += "                Remove-Item `$OutFile -Force -ErrorAction SilentlyContinue"
+                $scriptLines += "            } catch {"
+                $scriptLines += "                Write-Log `"  [ERREUR] Exception: `$_`""
+                $scriptLines += "                `$FailCount++"
+                $scriptLines += "            }"
+                $scriptLines += "            Start-Sleep -Seconds 3"
+                $scriptLines += "        }"
+                $scriptLines += "    } else {"
+                $scriptLines += "        Start-Sleep -Seconds 30"
+                $scriptLines += "        `$WingetApps = @("
+                $scriptLines += $appsBlock
+                $scriptLines += "        )"
+                $scriptLines += "        Write-Log `"[INFO] Installation via winget - `$(`$WingetApps.Count) apps`""
+                $scriptLines += "        foreach (`$AppItem in `$WingetApps) {"
+                $scriptLines += "            Write-Log `"[`$(`$AppItem.Icon)] `$(`$AppItem.Name)...`""
+                $scriptLines += "            try {"
+                $scriptLines += "                `$Output = winget install --id `$AppItem.Id --silent --accept-package-agreements --accept-source-agreements 2>&1 | Out-String"
+                $scriptLines += "                if (`$LASTEXITCODE -eq 0) {"
+                $scriptLines += "                    Write-Log `"    [OK] `$(`$AppItem.Name) installe`""
+                $scriptLines += "                    `$SuccessCount++"
+                $scriptLines += "                } else {"
+                $scriptLines += "                    Write-Log `"    [ERREUR] Code: `$LASTEXITCODE`""
+                $scriptLines += "                    Write-Log `"    Details: `$Output`""
+                $scriptLines += "                    `$FailCount++"
+                $scriptLines += "                }"
+                $scriptLines += "            } catch {"
+                $scriptLines += "                Write-Log `"    [ERREUR] Exception: `$_`""
+                $scriptLines += "                `$FailCount++"
+                $scriptLines += "            }"
+                $scriptLines += "            Start-Sleep -Seconds 5"
+                $scriptLines += "        }"
+                $scriptLines += "    }"
+                $scriptLines += "    `$Duration = ((Get-Date) - `$StartTime).TotalMinutes"
+                $scriptLines += "    Write-Log '============================================'"
+                $scriptLines += "    Write-Log `"TERMINE - Succes: `$SuccessCount | Echecs: `$FailCount | Duree: `$([math]::Round(`$Duration,2)) min`""
+                $scriptLines += "    Write-Log '============================================'"
+                $scriptLines += "    try { Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show(`"Installation terminee :`n`$SuccessCount apps installees`n`$FailCount echecs`", 'Xpolaris Apps', 0, 64) | Out-Null } catch { }"
+                $scriptLines += "    exit 0"
+                $scriptLines += "} else {"
+                $scriptLines += "    Write-Host 'Xpolaris Apps Manager - Lancez avec -AutoMode pour installer automatiquement'"
+                $scriptLines += "}"
+                
+                $appsManagerContent = $scriptLines -join "`r`n"
                 if (-not (Test-Path $oemScriptsDir)) { New-Item -ItemType Directory -Path $oemScriptsDir -Force | Out-Null }
                 $appsManagerContent | Set-Content "$oemScriptsDir\Xpolaris-Apps-Manager.ps1" -Force -Encoding UTF8
                 Copy-Item "$oemScriptsDir\Xpolaris-Apps-Manager.ps1" "$customISODir\sources\Xpolaris-Apps-Manager.ps1" -Force
