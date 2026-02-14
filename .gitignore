@@ -1,6 +1,7 @@
 # Fichiers compiles et executables
 *.exe
 !rufus-*.exe
+!release-v*/*.exe
 
 # Dossiers de travail
 CustomizeWork/
@@ -54,3 +55,4 @@ docs/*.html
 *.zip
 *.7z
 *.rar
+!Xpolaris-Windows-Customizer-v*.zip
