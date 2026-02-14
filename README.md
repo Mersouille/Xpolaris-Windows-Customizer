@@ -29,12 +29,12 @@
 
 ### Option 1 : Cloner le depot
 ```bash
-git clone https://github.com/VOTRE_USERNAME/Xpolaris-Windows-Customizer.git
+git clone https://github.com/Mersouille/Xpolaris-Windows-Customizer.git
 cd Xpolaris-Windows-Customizer
 ```
 
 ### Option 2 : Telecharger le ZIP
-Telechargez la derniere release depuis [Releases](https://github.com/VOTRE_USERNAME/Xpolaris-Windows-Customizer/releases)
+Telechargez la derniere release depuis [Releases](https://github.com/Mersouille/Xpolaris-Windows-Customizer/releases)
 
 ## Utilisation
 
