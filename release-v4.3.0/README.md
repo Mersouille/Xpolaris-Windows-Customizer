@@ -14,6 +14,7 @@
 - **Extraction d'edition** : Selectionnez et extrayez une edition specifique (Pro, Home, etc.)
 - **Suppression du bloatware** : 17 applications Microsoft indesirables (Cortana, Xbox, Teams, OneDrive, Clipchamp...)
 - **Suppression de composants Windows** : IE11, WMP, Paint 3D, Fax, Hello Face, WordPad, Phone Link...
+- **Installation automatique d'applications** : 6 applications essentielles (7-Zip, Notepad++, Chrome, CCleaner, VLC, TeamViewer) via winget
 - **Optimisations systeme** : Telemetrie, Cortana, widgets, Copilot, Recall, ContentDeliveryManager (11 cles)
 - **Post-installation Xpolaris** : Branding OEM, activation Admin, fond d'ecran, scripts automatises
 - **Modifications du registre** : Tweaks explorateur, performance visuelle, notifications
