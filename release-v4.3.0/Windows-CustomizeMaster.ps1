@@ -7,14 +7,14 @@
 .NOTES
     Auteur: Personnalisation Windows
     Date: 21 décembre 2025
-    Version: 4.2.0
+    Version: 4.3.0
 #>
 
 # Configuration console pour ps2exe - CRITIQUE pour l'affichage
 try {
     # Forcer la taille de buffer pour ps2exe
     if ($Host.UI.RawUI) {
-        $Host.UI.RawUI.WindowTitle = "Xpolaris Windows Customizer v4.2.0"
+        $Host.UI.RawUI.WindowTitle = "Xpolaris Windows Customizer v4.3.0"
         $Host.UI.RawUI.BackgroundColor = "Black"
         $Host.UI.RawUI.ForegroundColor = "White"
         
@@ -57,6 +57,14 @@ $Global:BootWim = "$Global:ISOPath\sources\boot.wim"
 $Global:CustomISODir = "$Global:WorkDir\CustomISO"
 $Global:OutputISO = "$Global:ISOPath\Windows_Custom_Xpolaris.iso"
 
+# Variables pour les applications à installer
+$Global:Install7Zip = $false
+$Global:InstallNotepadPP = $false
+$Global:InstallChrome = $false
+$Global:InstallCCleaner = $false
+$Global:InstallVLC = $false
+$Global:InstallTeamViewer = $false
+
 # Fonction d'affichage couleur
 function Write-ColorOutput {
     param([string]$Color, [string]$Message)
@@ -76,7 +84,7 @@ function Show-XpolarisLogo {
     Write-Host "        ██╔╝ ██╗██║     ╚██████╔╝███████╗██║  ██║██║  ██║██║███████║" -ForegroundColor Cyan
     Write-Host "        ╚═╝  ╚═╝╚═╝      ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚══════╝" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "                      ⭐ WINDOWS CUSTOMIZER v4.2.0 ⭐" -ForegroundColor Yellow
+    Write-Host "                      ⭐ WINDOWS CUSTOMIZER v4.3.0 ⭐" -ForegroundColor Yellow
     Write-Host "                  Edition Personnalisée Sans Bloatware" -ForegroundColor Gray
     Write-Host ""
 }
@@ -256,6 +264,192 @@ function Start-ProcessWithProgress {
     Write-Host ""
     
     return $ExitCode
+}
+
+# Fonction de menu de sélection des applications
+function Show-AppsMenu {
+    Clear-Host
+    Show-XpolarisLogo
+    
+    Write-Host "╔══════════════════════════════════════════════════════════════════════════╗" -ForegroundColor DarkCyan
+    Write-Host "║              SÉLECTION DES APPLICATIONS À INSTALLER                      ║" -ForegroundColor DarkCyan
+    Write-Host "╚══════════════════════════════════════════════════════════════════════════╝" -ForegroundColor DarkCyan
+    Write-Host ""
+    Write-Host "Ces applications seront installées automatiquement après l'installation" -ForegroundColor Gray
+    Write-Host "de Windows via le gestionnaire winget." -ForegroundColor Gray
+    Write-Host ""
+    
+    # Afficher l'état actuel
+    Write-Host "État actuel de la sélection :" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  [1] 7-Zip (Compression)           " -NoNewline
+    if ($Global:Install7Zip) { Write-Host "[✓ Sélectionné]" -ForegroundColor Green } else { Write-Host "[ Non sélectionné]" -ForegroundColor Gray }
+    
+    Write-Host "  [2] Notepad++ (Éditeur de texte)  " -NoNewline
+    if ($Global:InstallNotepadPP) { Write-Host "[✓ Sélectionné]" -ForegroundColor Green } else { Write-Host "[ Non sélectionné]" -ForegroundColor Gray }
+    
+    Write-Host "  [3] Google Chrome (Navigateur)    " -NoNewline
+    if ($Global:InstallChrome) { Write-Host "[✓ Sélectionné]" -ForegroundColor Green } else { Write-Host "[ Non sélectionné]" -ForegroundColor Gray }
+    
+    Write-Host "  [4] CCleaner (Nettoyage système)  " -NoNewline
+    if ($Global:InstallCCleaner) { Write-Host "[✓ Sélectionné]" -ForegroundColor Green } else { Write-Host "[ Non sélectionné]" -ForegroundColor Gray }
+    
+    Write-Host "  [5] VLC Media Player (Lecteur)    " -NoNewline
+    if ($Global:InstallVLC) { Write-Host "[✓ Sélectionné]" -ForegroundColor Green } else { Write-Host "[ Non sélectionné]" -ForegroundColor Gray }
+    
+    Write-Host "  [6] TeamViewer (Bureau à distance) " -NoNewline
+    if ($Global:InstallTeamViewer) { Write-Host "[✓ Sélectionné]" -ForegroundColor Green } else { Write-Host "[ Non sélectionné]" -ForegroundColor Gray }
+    
+    Write-Host ""
+    Write-Host "  [A] Tout sélectionner" -ForegroundColor Yellow
+    Write-Host "  [D] Tout désélectionner" -ForegroundColor Yellow
+    Write-Host "  [R] Sélection recommandée (7-Zip, Notepad++, Chrome, VLC)" -ForegroundColor Yellow
+    Write-Host "  [0] Terminer et continuer" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Votre choix: " -NoNewline -ForegroundColor Cyan
+    
+    $Choice = Read-Host
+    
+    switch ($Choice) {
+        "1" { $Global:Install7Zip = -not $Global:Install7Zip; Show-AppsMenu }
+        "2" { $Global:InstallNotepadPP = -not $Global:InstallNotepadPP; Show-AppsMenu }
+        "3" { $Global:InstallChrome = -not $Global:InstallChrome; Show-AppsMenu }
+        "4" { $Global:InstallCCleaner = -not $Global:InstallCCleaner; Show-AppsMenu }
+        "5" { $Global:InstallVLC = -not $Global:InstallVLC; Show-AppsMenu }
+        "6" { $Global:InstallTeamViewer = -not $Global:InstallTeamViewer; Show-AppsMenu }
+        "A" { 
+            $Global:Install7Zip = $true
+            $Global:InstallNotepadPP = $true
+            $Global:InstallChrome = $true
+            $Global:InstallCCleaner = $true
+            $Global:InstallVLC = $true
+            $Global:InstallTeamViewer = $true
+            Show-AppsMenu
+        }
+        "D" {
+            $Global:Install7Zip = $false
+            $Global:InstallNotepadPP = $false
+            $Global:InstallChrome = $false
+            $Global:InstallCCleaner = $false
+            $Global:InstallVLC = $false
+            $Global:InstallTeamViewer = $false
+            Show-AppsMenu
+        }
+        "R" {
+            $Global:Install7Zip = $true
+            $Global:InstallNotepadPP = $true
+            $Global:InstallChrome = $true
+            $Global:InstallCCleaner = $false
+            $Global:InstallVLC = $true
+            $Global:InstallTeamViewer = $false
+            Show-AppsMenu
+        }
+        "0" { return }
+        default { Show-AppsMenu }
+    }
+}
+
+# Fonction de génération du fichier Apps-Manager.ps1
+function New-AppsManagerScript {
+    param([string]$OutputPath)
+    
+    # Compter les applications sélectionnées
+    $selectedApps = @()
+    if ($Global:Install7Zip) { $selectedApps += @{Name="7-Zip"; Id="7zip.7zip"; Icon="📦"} }
+    if ($Global:InstallNotepadPP) { $selectedApps += @{Name="Notepad++"; Id="Notepad++.Notepad++"; Icon="📝"} }
+    if ($Global:InstallChrome) { $selectedApps += @{Name="Google Chrome"; Id="Google.Chrome"; Icon="🌐"} }
+    if ($Global:InstallCCleaner) { $selectedApps += @{Name="CCleaner"; Id="Piriform.CCleaner"; Icon="🧹"} }
+    if ($Global:InstallVLC) { $selectedApps += @{Name="VLC Media Player"; Id="VideoLAN.VLC"; Icon="🎬"} }
+    if ($Global:InstallTeamViewer) { $selectedApps += @{Name="TeamViewer"; Id="TeamViewer.TeamViewer"; Icon="🖥️"} }
+    
+    if ($selectedApps.Count -eq 0) {
+        Write-Host "    ! Aucune application sélectionnée" -ForegroundColor Yellow
+        return $false
+    }
+    
+    # Construire le script ligne par ligne
+    $scriptLines = @()
+    $scriptLines += "#Requires -RunAsAdministrator"
+    $scriptLines += "<#"
+    $scriptLines += ".SYNOPSIS"
+    $scriptLines += "    Xpolaris Apps Manager - Gestionnaire d'applications"
+    $scriptLines += ".DESCRIPTION"
+    $scriptLines += "    Installation automatique d'applications via winget avec fallback"
+    $scriptLines += "    Généré automatiquement par Xpolaris Windows Customizer"
+    $scriptLines += "#>"
+    $scriptLines += ""
+    $scriptLines += "`$ErrorActionPreference = 'Continue'"
+    $scriptLines += "`$LogFile = 'C:\Xpolaris-Apps-Manager.log'"
+    $scriptLines += ""
+    $scriptLines += "function Write-Log {"
+    $scriptLines += "    param([string]`$Message)"
+    $scriptLines += "    `$Timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'"
+    $scriptLines += "    `$LogMessage = `"[`$Timestamp] `$Message`""
+    $scriptLines += "    Add-Content -Path `$LogFile -Value `$LogMessage"
+    $scriptLines += "    Write-Host `$Message"
+    $scriptLines += "}"
+    $scriptLines += ""
+    $scriptLines += "Write-Log '═══════════════════════════════════════════════════════════════'"
+    $scriptLines += "Write-Log 'Xpolaris Apps Manager - Démarrage'"
+    $scriptLines += "Write-Log '═══════════════════════════════════════════════════════════════'"
+    $scriptLines += ""
+    $scriptLines += "try {"
+    $scriptLines += "    if (`$PSVersionTable.PSVersion.Major -lt 5) {"
+    $scriptLines += "        Write-Log '[ERREUR] PowerShell 5.0+ requis'"
+    $scriptLines += "        exit 1"
+    $scriptLines += "    }"
+    $scriptLines += ""
+    $scriptLines += "    # Liste des applications à installer via winget"
+    $scriptLines += "    `$WingetApps = @("
+    
+    foreach ($app in $selectedApps) {
+        $scriptLines += "        @{Name='$($app.Name)'; Id='$($app.Id)'; Icon='$($app.Icon)'}"
+    }
+    
+    $scriptLines += "    )"
+    $scriptLines += ""
+    $scriptLines += "    `$SuccessCount = 0"
+    $scriptLines += "    `$FailedApps = @()"
+    $scriptLines += ""
+    $scriptLines += "    # Installation via winget"
+    $scriptLines += "    if (`$WingetApps.Count -gt 0) {"
+    $scriptLines += "        Write-Log `"[INFO] Installation via winget - `$(`$WingetApps.Count) apps`""
+    $scriptLines += "        foreach (`$AppItem in `$WingetApps) {"
+    $scriptLines += "            Write-Log `"[`$(`$AppItem.Icon)] `$(`$AppItem.Name)...`""
+    $scriptLines += "            try {"
+    $scriptLines += "                `$Output = winget install --id `$AppItem.Id --source winget --silent --accept-package-agreements --accept-source-agreements 2>&1 | Out-String"
+    $scriptLines += "                if (`$LASTEXITCODE -eq 0) {"
+    $scriptLines += "                    Write-Log `"    [OK] `$(`$AppItem.Name) installé`""
+    $scriptLines += "                    `$SuccessCount++"
+    $scriptLines += "                } else {"
+    $scriptLines += "                    Write-Log `"    [ERREUR] Code: `$LASTEXITCODE`""
+    $scriptLines += "                    Write-Log `"    Output: `$Output`""
+    $scriptLines += "                    `$FailedApps += `$AppItem.Name"
+    $scriptLines += "                }"
+    $scriptLines += "            } catch {"
+    $scriptLines += "                Write-Log `"    [ERREUR] Exception: `$_`""
+    $scriptLines += "                `$FailedApps += `$AppItem.Name"
+    $scriptLines += "            }"
+    $scriptLines += "        }"
+    $scriptLines += "    }"
+    $scriptLines += ""
+    $scriptLines += "    Write-Log '═══════════════════════════════════════════════════════════════'"
+    $scriptLines += "    Write-Log `"[RÉSUMÉ] `$SuccessCount/`$(`$WingetApps.Count) succès`""
+    $scriptLines += "    if (`$FailedApps.Count -gt 0) {"
+    $scriptLines += "        Write-Log `"[ÉCHECS] `$(`$FailedApps -join ', ')`""
+    $scriptLines += "    }"
+    $scriptLines += "    Write-Log '═══════════════════════════════════════════════════════════════'"
+    $scriptLines += ""
+    $scriptLines += "} catch {"
+    $scriptLines += "    Write-Log `"[ERREUR CRITIQUE] `$_`""
+    $scriptLines += "    exit 1"
+    $scriptLines += "}"
+    
+    # Écrire le fichier
+    $scriptLines -join "`r`n" | Out-File -FilePath $OutputPath -Encoding UTF8 -Force
+    
+    Write-Host "    ✓ Apps-Manager.ps1 généré ($($selectedApps.Count) apps)" -ForegroundColor Green
+    return $true
 }
 
 # Fonction de titre
@@ -692,6 +886,18 @@ function Start-CustomizeImage {
         Write-Host ""
         Write-Host "⏱️  Durée estimée: 10-15 minutes" -ForegroundColor Yellow
         Write-Host ""
+        
+        # Menu de sélection des applications
+        Write-Host "Voulez-vous sélectionner des applications à installer automatiquement ? " -NoNewline -ForegroundColor Cyan
+        Write-Host "(O/N)" -ForegroundColor Yellow -NoNewline
+        Write-Host ": " -NoNewline
+        $AppsChoice = Read-Host
+        
+        if ($AppsChoice -eq "O" -or $AppsChoice -eq "o") {
+            Show-AppsMenu
+        }
+        
+        Write-Host ""
         Write-Host "Voulez-vous lancer la personnalisation ? " -NoNewline -ForegroundColor Cyan
         Write-Host "(O/N)" -ForegroundColor Yellow -NoNewline
         Write-Host ": " -NoNewline
@@ -844,6 +1050,9 @@ function Start-CustomizeImage {
     
     # Copie des fichiers de personnalisation Xpolaris
     Write-Host "`n  Copie des fichiers de personnalisation..." -ForegroundColor Yellow
+    
+    # Générer Apps-Manager.ps1 si des applications sont sélectionnées
+    $AppManagerGenerated = New-AppsManagerScript -OutputPath "$Global:ISOPath\Xpolaris-Apps-Manager.ps1"
     
     # Copier autounattend.xml à la racine de l'ISO
     if (Test-Path "$Global:ISOPath\autounattend.xml") {
