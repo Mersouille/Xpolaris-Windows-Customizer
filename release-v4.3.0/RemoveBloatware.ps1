@@ -213,11 +213,24 @@ $ShortcutsRemoved = 0
 foreach ($Path in $StartMenuPaths) {
     if (Test-Path $Path) {
         foreach ($Stub in $StubShortcuts) {
+            # Supprimer les .lnk classiques
             $Shortcuts = Get-ChildItem -Path $Path -Filter "$Stub.lnk" -Recurse -ErrorAction SilentlyContinue
             foreach ($Shortcut in $Shortcuts) {
                 try {
-                    Write-Host "  - Suppression raccourci: $($Shortcut.Name)" -ForegroundColor Gray
+                    Write-Host "  - Suppression raccourci .lnk: $($Shortcut.Name)" -ForegroundColor Gray
                     Remove-Item -Path $Shortcut.FullName -Force -ErrorAction Stop
+                    $ShortcutsRemoved++
+                } catch {
+                    # Ignore les erreurs d'accès
+                }
+            }
+            
+            # NOUVEAU: Supprimer aussi les stubs SANS extension (Windows 11)
+            $StubFiles = Get-ChildItem -Path $Path -Filter $Stub -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.Extension -eq "" }
+            foreach ($StubFile in $StubFiles) {
+                try {
+                    Write-Host "  - Suppression stub sans extension: $($StubFile.Name)" -ForegroundColor Gray
+                    Remove-Item -Path $StubFile.FullName -Force -ErrorAction Stop
                     $ShortcutsRemoved++
                 } catch {
                     # Ignore les erreurs d'accès

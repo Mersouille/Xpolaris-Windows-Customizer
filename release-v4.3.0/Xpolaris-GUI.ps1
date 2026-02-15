@@ -1425,7 +1425,8 @@ function Start-CompleteProcess {
             $stepNum = 1
             $totalSteps = 0
             if ($chkWallpaper.IsChecked) { $totalSteps++ }
-            if ($chkOEMBranding.IsChecked) { $totalSteps++ }
+            # EXCLUSION MUTUELLE : Si "Supprimer branding OEM" est coché, on ignore "Appliquer branding OEM"
+            if ($chkOEMBranding.IsChecked -and -not $chkRemoveOEMBranding.IsChecked) { $totalSteps++ }
             if ($chkActivateAdmin.IsChecked) { $totalSteps++ }
             if ($chkRemoveBloatPost.IsChecked) { $totalSteps++ }
             if ($chkRemoveOEMBranding.IsChecked) { $totalSteps++ }
@@ -1446,7 +1447,8 @@ function Start-CompleteProcess {
                 $stepNum++
             }
             
-            if ($chkOEMBranding.IsChecked) {
+            # LOGIC FIX: N'applique le branding OEM que si "Supprimer branding" n'est PAS coché
+            if ($chkOEMBranding.IsChecked -and -not $chkRemoveOEMBranding.IsChecked) {
                 $setupLines += "echo [$stepNum/$totalSteps] Configuration OEM Xpolaris... >> %LOGFILE%"
                 $setupLines += 'reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation" /v Manufacturer /t REG_SZ /d "Xpolaris" /f >> %LOGFILE% 2>&1'
                 $setupLines += 'reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation" /v Model /t REG_SZ /d "Xpolaris OS - Edition Personnalisee" /f >> %LOGFILE% 2>&1'
