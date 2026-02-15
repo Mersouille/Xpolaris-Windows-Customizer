@@ -185,7 +185,52 @@ try {
 Write-Host "  [OK] OneDrive completement desinstalle" -ForegroundColor Green
 Write-Host ""
 
-Write-Host "[5/5] Nettoyage Registry bloatware..." -ForegroundColor Yellow
+Write-Host "[5/6] Suppression des raccourcis stub du menu Demarrer..." -ForegroundColor Yellow
+
+# Chemins des raccourcis du menu Démarrer
+$StartMenuPaths = @(
+    "$env:ProgramData\Microsoft\Windows\Start Menu\Programs",
+    "$env:AppData\Microsoft\Windows\Start Menu\Programs",
+    "$env:ALLUSERSPROFILE\Microsoft\Windows\Start Menu\Programs"
+)
+
+# Noms de raccourcis à supprimer (stubs vers Store)
+$StubShortcuts = @(
+    "*OneDrive*",
+    "*Outlook*",
+    "*Solitaire*",
+    "*Xbox*",
+    "*Teams*",
+    "*LinkedIn*",
+    "*TikTok*",
+    "*Instagram*",
+    "*Facebook*",
+    "*Clipchamp*",
+    "*Spotify*"
+)
+
+$ShortcutsRemoved = 0
+foreach ($Path in $StartMenuPaths) {
+    if (Test-Path $Path) {
+        foreach ($Stub in $StubShortcuts) {
+            $Shortcuts = Get-ChildItem -Path $Path -Filter "$Stub.lnk" -Recurse -ErrorAction SilentlyContinue
+            foreach ($Shortcut in $Shortcuts) {
+                try {
+                    Write-Host "  - Suppression raccourci: $($Shortcut.Name)" -ForegroundColor Gray
+                    Remove-Item -Path $Shortcut.FullName -Force -ErrorAction Stop
+                    $ShortcutsRemoved++
+                } catch {
+                    # Ignore les erreurs d'accès
+                }
+            }
+        }
+    }
+}
+
+Write-Host "  [OK] $ShortcutsRemoved raccourci(s) supprime(s)" -ForegroundColor Green
+Write-Host ""
+
+Write-Host "[6/6] Nettoyage Registry bloatware..." -ForegroundColor Yellow
 
 # Supprimer clés Registry Xbox
 $XboxRegKeys = @(

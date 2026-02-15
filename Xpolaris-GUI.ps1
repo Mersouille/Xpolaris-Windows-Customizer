@@ -282,6 +282,7 @@ $xaml = @"
                         <GroupBox Grid.Column="1" Grid.Row="1" Header="Post-Installation Xpolaris">
                             <StackPanel>
                                 <CheckBox Name="chkOEMBranding" Content="Branding OEM Xpolaris" IsChecked="False" ToolTip="Ajoute Xpolaris comme fabricant dans Systeme"/>
+                                <CheckBox Name="chkRemoveOEMBranding" Content="Supprimer branding OEM (neutre)" IsChecked="True" ToolTip="Retire toutes les infos OEM pour un systeme professionnel neutre"/>
                                 <CheckBox Name="chkActivateAdmin" Content="Activer compte Administrateur" IsChecked="True"/>
                                 <CheckBox Name="chkWallpaper" Content="Fond d'ecran Xpolaris" IsChecked="False" ToolTip="Copie et applique le wallpaper Xpolaris"/>
                                 <CheckBox Name="chkRemoveBloatPost" Content="Script RemoveBloatware post-install" IsChecked="True" ToolTip="Nettoyage supplementaire au 1er demarrage"/>
@@ -486,6 +487,7 @@ $chkContentDelivery = $window.FindName("chkContentDelivery")
 
 # Nouveaux controles - Post-Installation
 $chkOEMBranding = $window.FindName("chkOEMBranding")
+$chkRemoveOEMBranding = $window.FindName("chkRemoveOEMBranding")
 $chkActivateAdmin = $window.FindName("chkActivateAdmin")
 $chkWallpaper = $window.FindName("chkWallpaper")
 $chkRemoveBloatPost = $window.FindName("chkRemoveBloatPost")
@@ -1218,6 +1220,16 @@ function Start-CompleteProcess {
             }
         }
         
+        if ($chkRemoveOEMBranding.IsChecked) {
+            if (Test-Path "$scriptDir\RemoveOEMBranding.ps1") {
+                Copy-Item "$scriptDir\RemoveOEMBranding.ps1" "$customISODir\sources\RemoveOEMBranding.ps1" -Force
+                Copy-Item "$scriptDir\RemoveOEMBranding.ps1" "$oemScriptsDir\RemoveOEMBranding.ps1" -Force
+                Write-Log "  RemoveOEMBranding.ps1 copie (suppression branding OEM)" "Info"
+            } else {
+                Write-Log "  [ERREUR] RemoveOEMBranding.ps1 introuvable dans $scriptDir" "Error"
+            }
+        }
+        
         if ($chkAppsManager.IsChecked) {
             # Construire la liste des apps selectionnees
             $selectedApps = @()
@@ -1399,6 +1411,7 @@ function Start-CompleteProcess {
             if ($chkOEMBranding.IsChecked) { $totalSteps++ }
             if ($chkActivateAdmin.IsChecked) { $totalSteps++ }
             if ($chkRemoveBloatPost.IsChecked) { $totalSteps++ }
+            if ($chkRemoveOEMBranding.IsChecked) { $totalSteps++ }
             if ($chkAppsManager.IsChecked) { $totalSteps += 2 }
             if ($chkWallpaper.IsChecked -and (Test-Path "$scriptDir\ApplyWallpaper.ps1")) { $totalSteps++ }
             
@@ -1443,6 +1456,18 @@ function Start-CompleteProcess {
                 $setupLines += '    echo [OK] Bloatware supprime >> %LOGFILE%'
                 $setupLines += ') else ('
                 $setupLines += '    echo [ERREUR] RemoveBloatware.ps1 introuvable >> %LOGFILE%'
+                $setupLines += ')'
+                $setupLines += ''
+                $stepNum++
+            }
+            
+            if ($chkRemoveOEMBranding.IsChecked) {
+                $setupLines += "echo [$stepNum/$totalSteps] Suppression branding OEM (config neutre)... >> %LOGFILE%"
+                $setupLines += 'if exist "%~dp0RemoveOEMBranding.ps1" ('
+                $setupLines += '    powershell.exe -ExecutionPolicy Bypass -NoProfile -File "%~dp0RemoveOEMBranding.ps1" >> C:\RemoveOEMBranding.log 2>&1'
+                $setupLines += '    echo [OK] Branding OEM supprime >> %LOGFILE%'
+                $setupLines += ') else ('
+                $setupLines += '    echo [ERREUR] RemoveOEMBranding.ps1 introuvable >> %LOGFILE%'
                 $setupLines += ')'
                 $setupLines += ''
                 $stepNum++
@@ -1722,7 +1747,7 @@ $btnSelectAll.Add_Click({
         $chkShowHidden, $chkSyncNotif, $chkWidgets, $chkCopilot, $chkRecall, $chkPerformance,
         $chkContentDelivery,
         $chkDiagTrack, $chkWSearch, $chkSuperFetch, $chkPrint,
-        $chkOEMBranding, $chkActivateAdmin, $chkWallpaper, $chkRemoveBloatPost,
+        $chkOEMBranding, $chkRemoveOEMBranding, $chkActivateAdmin, $chkWallpaper, $chkRemoveBloatPost,
         $chkAppsManager, $chkSetupComplete, $chkAutoUnattend,
         $chkInstall7Zip, $chkInstallNotepadPP, $chkInstallChrome, $chkInstallCCleaner, $chkInstallVLC, $chkInstallTeamViewer,
         $chkCompact, $chkCleanup, $chkOptimizeWim
@@ -1744,7 +1769,7 @@ $btnDeselectAll.Add_Click({
         $chkShowHidden, $chkSyncNotif, $chkWidgets, $chkCopilot, $chkRecall, $chkPerformance,
         $chkContentDelivery,
         $chkDiagTrack, $chkWSearch, $chkSuperFetch, $chkPrint,
-        $chkOEMBranding, $chkActivateAdmin, $chkWallpaper, $chkRemoveBloatPost,
+        $chkOEMBranding, $chkRemoveOEMBranding, $chkActivateAdmin, $chkWallpaper, $chkRemoveBloatPost,
         $chkAppsManager, $chkSetupComplete, $chkAutoUnattend,
         $chkInstall7Zip, $chkInstallNotepadPP, $chkInstallChrome, $chkInstallCCleaner, $chkInstallVLC, $chkInstallTeamViewer,
         $chkCompact, $chkCleanup, $chkOptimizeWim
@@ -1767,7 +1792,7 @@ $btnRecommended.Add_Click({
         $chkShowHidden, $chkSyncNotif, $chkWidgets, $chkCopilot, $chkRecall, $chkPerformance,
         $chkContentDelivery,
         $chkDiagTrack, $chkWSearch, $chkSuperFetch, $chkPrint,
-        $chkOEMBranding, $chkActivateAdmin, $chkWallpaper, $chkRemoveBloatPost,
+        $chkOEMBranding, $chkRemoveOEMBranding, $chkActivateAdmin, $chkWallpaper, $chkRemoveBloatPost,
         $chkAppsManager, $chkSetupComplete, $chkAutoUnattend,
         $chkInstall7Zip, $chkInstallNotepadPP, $chkInstallChrome, $chkInstallCCleaner, $chkInstallVLC, $chkInstallTeamViewer,
         $chkCompact, $chkCleanup, $chkOptimizeWim
