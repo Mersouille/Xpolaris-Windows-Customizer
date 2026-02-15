@@ -1,6 +1,6 @@
 # Xpolaris Windows Customizer Pro
 
-![Version](https://img.shields.io/badge/version-4.1.0-blue)
+![Version](https://img.shields.io/badge/version-4.3.0-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%2011-0078D6)
 ![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-5391FE)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -12,10 +12,13 @@
 ## Fonctionnalites
 
 - **Extraction d'edition** : Selectionnez et extrayez une edition specifique (Pro, Home, etc.)
-- **Suppression du bloatware** : Supprimez les applications Microsoft indesirables
-- **Optimisations systeme** : Desactivez la telemetrie, Cortana, widgets, etc.
-- **Modifications du registre** : Appliquez des tweaks pour ameliorer l'experience utilisateur
+- **Suppression du bloatware** : 17 applications Microsoft indesirables (Cortana, Xbox, Teams, OneDrive, Clipchamp...)
+- **Suppression de composants Windows** : IE11, WMP, Paint 3D, Fax, Hello Face, WordPad, Phone Link...
+- **Optimisations systeme** : Telemetrie, Cortana, widgets, Copilot, Recall, ContentDeliveryManager (11 cles)
+- **Post-installation Xpolaris** : Branding OEM, activation Admin, fond d'ecran, scripts automatises
+- **Modifications du registre** : Tweaks explorateur, performance visuelle, notifications
 - **Creation d'ISO bootable** : Generez un ISO BIOS/UEFI compatible avec oscdimg
+- **Boutons de selection rapide** : Tout cocher / Tout decocher / Config recommandee
 
 ## Prerequis
 
@@ -63,7 +66,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force
 | Application | Description |
 |-------------|-------------|
 | Cortana | Assistant vocal Microsoft |
-| Xbox Apps | Applications gaming Xbox |
+| Xbox Apps | Applications gaming Xbox (5 composants) |
 | OneDrive | Stockage cloud Microsoft |
 | Teams | Application de communication |
 | Skype | Application de communication |
@@ -71,18 +74,52 @@ Set-ExecutionPolicy Bypass -Scope Process -Force
 | Feedback Hub | Hub de commentaires |
 | Solitaire | Jeux Microsoft |
 | Maps | Cartes Windows |
-| Tips | Astuces Windows |
+| Tips / Get Started | Astuces Windows |
+| Clipchamp | Editeur video |
+| Microsoft To Do | Gestionnaire de taches |
+| Power Automate | Automatisation desktop |
+| People | Contacts |
+| Office Hub | Hub Microsoft Office |
+| Groove Music | Lecteur musique (Zune) |
+| Movies & TV | Films et TV (Zune Video) |
+
+## Composants Windows supprimables
+
+| Composant | Description |
+|-----------|-------------|
+| Internet Explorer 11 | Navigateur legacy |
+| Windows Media Player | Lecteur multimedia legacy |
+| Paint 3D / 3D Viewer | Applications 3D |
+| Fax & Scan | Telecopie et numerisation |
+| Hello Face | Reconnaissance faciale (sans camera IR) |
+| WordPad | Editeur de texte |
+| Xbox Services | Composants Xbox systeme |
+| Phone Link | Liaison telephone |
+| Mixed Reality Portal | Realite mixte |
+| Microsoft Wallet | Portefeuille Microsoft |
 
 ## Optimisations appliquees
 
 - Desactivation de la telemetrie Windows
 - Desactivation de Cortana
-- Blocage des applications suggerees
+- Blocage des applications suggerees (11 cles ContentDeliveryManager)
 - Desactivation des widgets
+- Desactivation de Copilot
+- Desactivation de Recall (Windows AI)
 - Affichage des extensions de fichiers
 - Affichage des fichiers caches
-- Desactivation de Copilot
-- Desactivation de Recall
+- Masquer les notifications OneDrive dans l'explorateur
+- Optimisation des effets visuels (performance)
+
+## Post-Installation Xpolaris
+
+- **Branding OEM** : Xpolaris affiche dans Systeme > Informations
+- **Compte Administrateur** : Active automatiquement
+- **Fond d'ecran** : Wallpaper Xpolaris applique + tache planifiee
+- **RemoveBloatware** : Script de nettoyage supplementaire au 1er demarrage
+- **Apps Manager** : Tache planifiee d'installation d'apps au login
+- **SetupComplete.cmd** : Script maitre avec log de debug complet
+- **autounattend.xml** : Installation Windows entierement automatisee
 
 ## Structure du projet
 
@@ -126,12 +163,23 @@ Pour compiler en executable :
 Install-Module -Name ps2exe -Force
 
 # Compiler
-ps2exe -InputFile "Xpolaris-GUI.ps1" -OutputFile "Xpolaris-GUI.exe" -NoConsole -requireAdmin -Title "Windows Customizer by Xpolaris" -Version "4.1.0"
+ps2exe -InputFile "Xpolaris-GUI.ps1" -OutputFile "Xpolaris-GUI.exe" -NoConsole -requireAdmin -Title "Windows Customizer by Xpolaris" -Version "4.3.0"
 ```
 
 **Note** : Les executables compiles peuvent declencher des faux positifs antivirus.
 
 ## Changelog
+
+### v4.3.0 (14 fevrier 2026)
+- **+17 apps Appx** supprimables (Clipchamp, To Do, Power Automate, People, Office Hub, Zune...)
+- **+11 composants Windows** supprimables via DISM (IE11, WMP, Paint 3D, Fax, WordPad, Xbox services...)
+- **Post-Installation Xpolaris** : Branding OEM, activation Admin, wallpaper, SetupComplete.cmd dynamique
+- **ContentDeliveryManager** : 11 cles registre au lieu de 3
+- **Nouvelles optimisations** : ShowSyncProviderNotifications, VisualFXSetting, Copilot/Recall avec vraies cles
+- **Boutons de selection rapide** : Tout cocher / Tout decocher / Config recommandee
+- **Layout 3 colonnes** dans l'onglet Personnalisation (51 options au total)
+- **Correction PSScriptAnalyzer** : 0 warning (catch vides, verbes approuves)
+- Renommage fonctions : Import-Editions, Export-SelectedEdition, Switch-Theme
 
 ### v4.1.0 (14 fevrier 2026)
 - Interface utilisateur modernisee
