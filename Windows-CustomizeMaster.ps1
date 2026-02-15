@@ -6,29 +6,33 @@
     Menu interactif pour personnaliser, optimiser et créer une image Windowssans bloatware
 .NOTES
     Auteur: Personnalisation Windows
-    Date: 21 décembre 2025
-    Version: 4.3.0
+    Date: 15 février 2026
+    Version: 4.3.2
 #>
 
 # Configuration console pour ps2exe - CRITIQUE pour l'affichage
 try {
-    # Forcer la taille de buffer pour ps2exe
-    if ($Host.UI.RawUI) {
-        $Host.UI.RawUI.WindowTitle = "Xpolaris Windows Customizer v4.3.0"
+    # Forcer la taille de buffer pour ps2exe (seulement si disponible)
+    if ($Host.UI.RawUI -and $Host.UI.RawUI.BufferSize) {
+        $Host.UI.RawUI.WindowTitle = "Xpolaris Windows Customizer v4.3.2"
         $Host.UI.RawUI.BackgroundColor = "Black"
         $Host.UI.RawUI.ForegroundColor = "White"
         
         # Forcer la taille du buffer (évite l'écran noir)
-        $bufferSize = $Host.UI.RawUI.BufferSize
-        $bufferSize.Width = 120
-        $bufferSize.Height = 3000
-        $Host.UI.RawUI.BufferSize = $bufferSize
-        
-        # Forcer la taille de la fenêtre
-        $windowSize = $Host.UI.RawUI.WindowSize
-        $windowSize.Width = 120
-        $windowSize.Height = 40
-        $Host.UI.RawUI.WindowSize = $windowSize
+        try {
+            $bufferSize = $Host.UI.RawUI.BufferSize
+            $bufferSize.Width = 120
+            $bufferSize.Height = 3000
+            $Host.UI.RawUI.BufferSize = $bufferSize
+            
+            # Forcer la taille de la fenêtre
+            $windowSize = $Host.UI.RawUI.WindowSize
+            $windowSize.Width = 120
+            $windowSize.Height = 40
+            $Host.UI.RawUI.WindowSize = $windowSize
+        } catch {
+            # Ignorer si le redimensionnement échoue
+        }
     }
     Clear-Host
 } catch {
@@ -36,19 +40,31 @@ try {
 }
 
 # Configuration de l'encodage UTF-8 pour afficher correctement les émojis
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$OutputEncoding = [System.Text.Encoding]::UTF8
+try {
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    $OutputEncoding = [System.Text.Encoding]::UTF8
+} catch {
+    # Ignorer si OutputEncoding non supporté (ps2exe)
+}
 
 # DIAGNOSTIC ps2exe - Afficher un message de démarrage
 Write-Output "Initialisation de Xpolaris Windows Customizer..."
 
-# Configuration globale - Détection automatique du dossier
-$Global:ISOPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-if ([string]::IsNullOrEmpty($Global:ISOPath)) {
+# Configuration globale - Détection automatique du dossier (compatible ps2exe)
+if ($MyInvocation.MyCommand.Path) {
+    $Global:ISOPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+} elseif ($PSScriptRoot) {
     $Global:ISOPath = $PSScriptRoot
+} elseif ($PSCommandPath) {
+    $Global:ISOPath = Split-Path -Parent $PSCommandPath
+} else {
+    # Dernier recours : répertoire courant
+    $Global:ISOPath = (Get-Location).Path
 }
+
 if ([string]::IsNullOrEmpty($Global:ISOPath)) {
-    $Global:ISOPath = Get-Location
+    Write-Host "ERREUR : Impossible de déterminer le répertoire d'exécution !" -ForegroundColor Red
+    $Global:ISOPath = "C:\Temp"
 }
 $Global:WorkDir = "$Global:ISOPath\CustomizeWork"
 $Global:MountDir = "$Global:WorkDir\Mount"
