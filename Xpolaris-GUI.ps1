@@ -5,10 +5,28 @@
 .DESCRIPTION
     Interface graphique moderne pour personnaliser Windows sans bloatware
 .NOTES
-    Version: 4.3.0
-    Date: 13 fevrier 2026
+    Version: 4.3.2
+    Date: 15 fevrier 2026
     Auteur: Xpolaris
 #>
+
+# Verification des droits administrateur (fonctionne aussi avec ps2exe)
+$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Add-Type -AssemblyName PresentationFramework
+    [System.Windows.MessageBox]::Show(
+        "Xpolaris Windows Customizer necessite des droits administrateur pour :`n`n" +
+        "- Monter les images ISO (Mount-DiskImage)`n" +
+        "- Modifier les images WIM avec DISM`n" +
+        "- Creer des fichiers ISO bootables`n`n" +
+        "Veuillez relancer l'application en tant qu'administrateur.`n`n" +
+        "Clic droit sur l'executable > Executer en tant qu'administrateur",
+        "Droits Administrateur Requis",
+        [System.Windows.MessageBoxButton]::OK,
+        [System.Windows.MessageBoxImage]::Warning
+    )
+    exit 1
+}
 
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName System.Windows.Forms
@@ -579,24 +597,56 @@ function Import-Editions {
     $btnLoadEditions.IsEnabled = $false
     
     try {
+        Write-Log "Montage de l'ISO : $Global:SelectedISOPath" "Info"
         $mountResult = Mount-DiskImage -ImagePath $Global:SelectedISOPath -PassThru
         $driveLetter = ($mountResult | Get-Volume).DriveLetter
         $installWim = "${driveLetter}:\sources\install.wim"
+        Write-Log "ISO monte sur ${driveLetter}: - Lecture de install.wim" "Info"
         
         if (Test-Path $installWim) {
+            Write-Log "Analyse des editions avec Get-WindowsImage..." "Info"
             $images = Get-WindowsImage -ImagePath $installWim
-            $lstEditions.Items.Clear()
-            foreach ($image in $images) {
-                $item = "$($image.ImageIndex) - $($image.ImageName)"
-                $lstEditions.Items.Add($item)
+            
+            if ($images -and $images.Count -gt 0) {
+                Write-Log "Nettoyage de la liste et ajout de $($images.Count) edition(s)..." "Info"
+                
+                # Forcer le rafraichissement de l'UI avec Dispatcher
+                $window.Dispatcher.Invoke([action]{
+                    $lstEditions.Items.Clear()
+                    
+                    foreach ($image in $images) {
+                        $item = "$($image.ImageIndex) - $($image.ImageName)"
+                        $lstEditions.Items.Add($item) | Out-Null
+                    }
+                }, "Normal")
+                
+                Write-Log "$($images.Count) edition(s) trouvee(s) et affichee(s)" "Success"
+                Write-Log "Items dans la liste : $($lstEditions.Items.Count)" "Info"
+            } else {
+                Write-Log "ERREUR : Aucune edition trouvee dans install.wim !" "Error"
             }
-            Write-Log "$($images.Count) edition(s) trouvee(s)" "Success"
+        } else {
+            Write-Log "ERREUR : install.wim introuvable a $installWim" "Error"
         }
         
+        Write-Log "Demontage de l'ISO..." "Info"
         Dismount-DiskImage -ImagePath $Global:SelectedISOPath | Out-Null
+        Write-Log "ISO demonte avec succes" "Success"
     }
     catch {
-        Write-Log "Erreur lors du chargement : $_" "Error"
+        $errorMsg = $_.Exception.Message
+        
+        if ($errorMsg -match "élévation|elevation|administrator") {
+            Write-Log "ERREUR : Droits administrateur requis pour monter l'ISO !" "Error"
+            Write-Log "Solution : Clic droit sur l'executable > Executer en tant qu'administrateur" "Warning"
+        } else {
+            Write-Log "ERREUR CRITIQUE lors du chargement : $errorMsg" "Error"
+        }
+        
+        # Tenter de demonter si le montage a partiellement reussi
+        try {
+            Dismount-DiskImage -ImagePath $Global:SelectedISOPath -ErrorAction SilentlyContinue | Out-Null
+        } catch {}
     }
     finally {
         $btnLoadEditions.IsEnabled = $true
