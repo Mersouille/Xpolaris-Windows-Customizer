@@ -1206,7 +1206,9 @@ function Start-CompleteProcess {
             if (Test-Path "$scriptDir\ApplyWallpaper.ps1") {
                 Copy-Item "$scriptDir\ApplyWallpaper.ps1" "$customISODir\sources\ApplyWallpaper.ps1" -Force
                 Copy-Item "$scriptDir\ApplyWallpaper.ps1" "$oemScriptsDir\ApplyWallpaper.ps1" -Force
-                Write-Log "  ApplyWallpaper.ps1 copie" "Info"
+                Unblock-File "$customISODir\sources\ApplyWallpaper.ps1" -ErrorAction SilentlyContinue
+                Unblock-File "$oemScriptsDir\ApplyWallpaper.ps1" -ErrorAction SilentlyContinue
+                Write-Log "  ApplyWallpaper.ps1 copie et debloque" "Info"
             }
         }
         
@@ -1214,9 +1216,15 @@ function Start-CompleteProcess {
             if (Test-Path "$scriptDir\RemoveBloatware.ps1") {
                 Copy-Item "$scriptDir\RemoveBloatware.ps1" "$customISODir\sources\RemoveBloatware.ps1" -Force
                 Copy-Item "$scriptDir\RemoveBloatware.ps1" "$oemScriptsDir\RemoveBloatware.ps1" -Force
-                Write-Log "  RemoveBloatware.ps1 copie" "Info"
+                Unblock-File "$customISODir\sources\RemoveBloatware.ps1" -ErrorAction SilentlyContinue
+                Unblock-File "$oemScriptsDir\RemoveBloatware.ps1" -ErrorAction SilentlyContinue
+                Write-Log "  RemoveBloatware.ps1 copie et debloque" "Info"
             } else {
                 Write-Log "  [ERREUR] RemoveBloatware.ps1 introuvable dans $scriptDir" "Error"
+            }
+            if (Test-Path "$scriptDir\RemoveBloatware.cmd") {
+                Copy-Item "$scriptDir\RemoveBloatware.cmd" "$oemScriptsDir\RemoveBloatware.cmd" -Force
+                Write-Log "  RemoveBloatware.cmd copie (launcher)" "Info"
             }
         }
         
@@ -1224,9 +1232,15 @@ function Start-CompleteProcess {
             if (Test-Path "$scriptDir\RemoveOEMBranding.ps1") {
                 Copy-Item "$scriptDir\RemoveOEMBranding.ps1" "$customISODir\sources\RemoveOEMBranding.ps1" -Force
                 Copy-Item "$scriptDir\RemoveOEMBranding.ps1" "$oemScriptsDir\RemoveOEMBranding.ps1" -Force
-                Write-Log "  RemoveOEMBranding.ps1 copie (suppression branding OEM)" "Info"
+                Unblock-File "$customISODir\sources\RemoveOEMBranding.ps1" -ErrorAction SilentlyContinue
+                Unblock-File "$oemScriptsDir\RemoveOEMBranding.ps1" -ErrorAction SilentlyContinue
+                Write-Log "  RemoveOEMBranding.ps1 copie et debloque (suppression branding OEM)" "Info"
             } else {
                 Write-Log "  [ERREUR] RemoveOEMBranding.ps1 introuvable dans $scriptDir" "Error"
+            }
+            if (Test-Path "$scriptDir\RemoveOEMBranding.cmd") {
+                Copy-Item "$scriptDir\RemoveOEMBranding.cmd" "$oemScriptsDir\RemoveOEMBranding.cmd" -Force
+                Write-Log "  RemoveOEMBranding.cmd copie (launcher)" "Info"
             }
         }
         
@@ -1367,12 +1381,15 @@ function Start-CompleteProcess {
                 $appsManagerContent = $scriptLines -join "`r`n"
                 if (-not (Test-Path $oemScriptsDir)) { New-Item -ItemType Directory -Path $oemScriptsDir -Force | Out-Null }
                 $appsManagerContent | Set-Content "$oemScriptsDir\Xpolaris-Apps-Manager.ps1" -Force -Encoding UTF8
+                Unblock-File "$oemScriptsDir\Xpolaris-Apps-Manager.ps1" -ErrorAction SilentlyContinue
                 Copy-Item "$oemScriptsDir\Xpolaris-Apps-Manager.ps1" "$customISODir\sources\Xpolaris-Apps-Manager.ps1" -Force
+                Unblock-File "$customISODir\sources\Xpolaris-Apps-Manager.ps1" -ErrorAction SilentlyContinue
                 # Copier aussi sur le bureau Admin
                 $adminDesktop = "$customISODir\sources\`$OEM`$\`$`$\Users\Administrateur\Desktop"
                 if (-not (Test-Path $adminDesktop)) { New-Item -ItemType Directory -Path $adminDesktop -Force | Out-Null }
                 Copy-Item "$oemScriptsDir\Xpolaris-Apps-Manager.ps1" "$adminDesktop\Xpolaris-Apps-Manager.ps1" -Force
-                Write-Log "  Xpolaris-Apps-Manager.ps1 genere ($appCount apps : $(if($chkInstall7Zip.IsChecked){'7-Zip '})$(if($chkInstallNotepadPP.IsChecked){'Notepad++ '})$(if($chkInstallChrome.IsChecked){'Chrome '})$(if($chkInstallCCleaner.IsChecked){'CCleaner '})$(if($chkInstallVLC.IsChecked){'VLC '})$(if($chkInstallTeamViewer.IsChecked){'TeamViewer'}))" "Success"
+                Unblock-File "$adminDesktop\Xpolaris-Apps-Manager.ps1" -ErrorAction SilentlyContinue
+                Write-Log "  Xpolaris-Apps-Manager.ps1 genere et debloque ($appCount apps : $(if($chkInstall7Zip.IsChecked){'7-Zip '})$(if($chkInstallNotepadPP.IsChecked){'Notepad++ '})$(if($chkInstallChrome.IsChecked){'Chrome '})$(if($chkInstallCCleaner.IsChecked){'CCleaner '})$(if($chkInstallVLC.IsChecked){'VLC '})$(if($chkInstallTeamViewer.IsChecked){'TeamViewer'}))" "Success"
             } else {
                 Write-Log "  Aucune application selectionnee pour l'installation" "Warning"
             }
