@@ -1213,6 +1213,8 @@ function Start-CompleteProcess {
                 Copy-Item "$scriptDir\RemoveBloatware.ps1" "$customISODir\sources\RemoveBloatware.ps1" -Force
                 Copy-Item "$scriptDir\RemoveBloatware.ps1" "$oemScriptsDir\RemoveBloatware.ps1" -Force
                 Write-Log "  RemoveBloatware.ps1 copie" "Info"
+            } else {
+                Write-Log "  [ERREUR] RemoveBloatware.ps1 introuvable dans $scriptDir" "Error"
             }
         }
         
@@ -1324,7 +1326,7 @@ function Start-CompleteProcess {
                 $scriptLines += "        foreach (`$AppItem in `$WingetApps) {"
                 $scriptLines += "            Write-Log `"[`$(`$AppItem.Icon)] `$(`$AppItem.Name)...`""
                 $scriptLines += "            try {"
-                $scriptLines += "                `$Output = winget install --id `$AppItem.Id --silent --accept-package-agreements --accept-source-agreements 2>&1 | Out-String"
+                $scriptLines += "                `$Output = winget install --id `$AppItem.Id --source winget --silent --accept-package-agreements --accept-source-agreements 2>&1 | Out-String"
                 $scriptLines += "                if (`$LASTEXITCODE -eq 0) {"
                 $scriptLines += "                    Write-Log `"    [OK] `$(`$AppItem.Name) installe`""
                 $scriptLines += "                    `$SuccessCount++"
